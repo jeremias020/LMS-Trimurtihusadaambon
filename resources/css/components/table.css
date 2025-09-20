@@ -1,0 +1,580 @@
+/* Komponen Table untuk LMS - SMK Kesehatan Trimurti Husada Ambon */
+
+:root {
+    /* Health-specific colors */
+    --health-blue: #2c5aa0;
+    --health-green: #28a745;
+    --health-teal: #20c997;
+    --health-red: #e3342f;
+    --health-purple: #6f42c1;
+    --health-light-blue: #e8f4f8;
+    --health-light-green: #f0fff4;
+}
+
+/* Base Table Styles */
+.table-container {
+    background: var(--white);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.15rem 0.75rem rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    border-top: 3px solid var(--health-blue);
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.table th {
+    background-color: var(--health-light-blue);
+    border-bottom: 2px solid var(--health-blue);
+    padding: 1rem 0.75rem;
+    font-weight: 700;
+    color: var(--health-blue);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-800);
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--health-light-blue);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Table Variants */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--gray-50);
+}
+
+.table-striped tbody tr:nth-of-type(odd):hover {
+    background-color: var(--health-light-blue);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--health-light-blue);
+}
+
+.table-bordered {
+    border: 1px solid var(--gray-200);
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid var(--gray-200);
+}
+
+.table-borderless th,
+.table-borderless td,
+.table-borderless tr {
+    border: none;
+}
+
+/* Table Sizes */
+.table-sm th,
+.table-sm td {
+    padding: 0.5rem 0.75rem;
+}
+
+.table-lg th,
+.table-lg td {
+    padding: 1.25rem 0.75rem;
+}
+
+/* Table Actions */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.table-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--gray-600);
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.table-action-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-800);
+    transform: scale(1.1);
+}
+
+.btn-view { color: var(--info); }
+.btn-edit { color: var(--warning); }
+.btn-delete { color: var(--danger); }
+.btn-download { color: var(--success); }
+
+.btn-view:hover { background: rgba(54, 185, 204, 0.1); }
+.btn-edit:hover { background: rgba(246, 194, 62, 0.1); }
+.btn-delete:hover { background: rgba(231, 74, 59, 0.1); }
+.btn-download:hover { background: rgba(28, 200, 138, 0.1); }
+
+/* Status Badges in Tables */
+.table .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+    font-weight: 600;
+}
+
+/* Health Status Badges */
+.badge-status-hadir {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--health-green);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.badge-status-sakit {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.badge-status-izin {
+    background-color: rgba(23, 162, 184, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(23, 162, 184, 0.2);
+}
+
+.badge-status-alpha {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--health-red);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+/* Health Status Rows */
+.tr-status-hadir {
+    background-color: rgba(40, 167, 69, 0.05) !important;
+}
+
+.tr-status-sakit {
+    background-color: rgba(255, 193, 7, 0.05) !important;
+}
+
+.tr-status-izin {
+    background-color: rgba(23, 162, 184, 0.05) !important;
+}
+
+.tr-status-alpha {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+}
+
+/* Avatar in Tables */
+.table-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.5rem;
+    border: 2px solid var(--health-light-blue);
+}
+
+.table-user {
+    display: flex;
+    align-items: center;
+}
+
+.table-user-info {
+    line-height: 1.2;
+}
+
+.table-user-name {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.table-user-email {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* Sortable Tables */
+.table-sortable th {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.table-sortable th:hover {
+    background-color: var(--health-blue);
+    color: var(--white);
+}
+
+.table-sortable th::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 0.5rem;
+    opacity: 0.3;
+}
+
+.table-sortable th.sort-asc::after {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid currentColor;
+}
+
+.table-sortable th.sort-desc::after {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+}
+
+.table-sortable th.sort-asc,
+.table-sortable th.sort-desc {
+    color: var(--health-blue);
+}
+
+.table-sortable th.sort-asc::after,
+.table-sortable th.sort-desc::after {
+    opacity: 1;
+}
+
+/* Expandable Rows */
+.table-expandable .expand-toggle {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.table-expandable .expand-toggle:hover {
+    background-color: var(--health-light-blue);
+}
+
+.expandable-content {
+    display: none;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+}
+
+.expandable-content.active {
+    display: block;
+}
+
+/* Table Filters */
+.table-filters {
+    background: var(--white);
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.875rem;
+}
+
+.filter-select,
+.filter-input {
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: var(--white);
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    border-color: var(--health-blue);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.1);
+}
+
+/* Table Pagination */
+.table-pagination {
+    background: var(--white);
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between; /* Diperbaiki dari 'between' */
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pagination-info {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.pagination-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    background: var(--white);
+    color: var(--gray-700);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.pagination-btn:hover {
+    background: var(--health-light-blue);
+    border-color: var(--health-blue);
+    color: var(--health-blue);
+}
+
+.pagination-btn.active {
+    background: var(--health-blue);
+    color: var(--white);
+    border-color: var(--health-blue);
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.table-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-600);
+}
+
+.table-empty-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--gray-400);
+}
+
+.table-empty-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--gray-700);
+}
+
+.table-empty-description {
+    font-size: 0.875rem;
+}
+
+/* Responsive Tables */
+@media (max-width: 768px) {
+    .table-container {
+        border-radius: 0.25rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .table-actions {
+        flex-direction: row;
+        gap: 0.25rem;
+        justify-content: center;
+    }
+
+    .table-action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .table-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+
+    .table-pagination {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .pagination-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* Stack table on mobile */
+    .table-stack-mobile {
+        display: block;
+    }
+
+    .table-stack-mobile thead {
+        display: none;
+    }
+
+    .table-stack-mobile tbody,
+    .table-stack-mobile tr,
+    .table-stack-mobile td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-stack-mobile tr {
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 0.25rem;
+        padding: 0.75rem;
+    }
+
+    .table-stack-mobile td {
+        padding: 0.5rem;
+        border: none;
+        border-bottom: 1px solid var(--gray-100);
+        text-align: right;
+    }
+
+    .table-stack-mobile td:last-child {
+        border-bottom: none;
+    }
+
+    .table-stack-mobile td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--gray-700);
+        display: block;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        text-align: left;
+    }
+
+    .table-stack-mobile .table-actions {
+        justify-content: flex-end;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .table-container {
+        background-color: var(--gray-800);
+        border-top-color: var(--health-blue);
+    }
+
+    .table th {
+        background-color: var(--gray-700);
+        color: var(--health-blue);
+        border-bottom-color: var(--health-blue);
+    }
+
+    .table td {
+        color: var(--gray-300);
+        border-bottom-color: var(--gray-700);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--gray-750);
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--gray-750);
+    }
+
+    .table-striped tbody tr:nth-of-type(odd):hover {
+        background-color: var(--gray-700);
+    }
+
+    .expandable-content {
+        background-color: var(--gray-750);
+        border-top-color: var(--gray-700);
+    }
+
+    .table-filters {
+        background-color: var(--gray-800);
+        border-bottom-color: var(--gray-700);
+    }
+
+    .filter-select,
+    .filter-input {
+        background-color: var(--gray-700);
+        border-color: var(--gray-600);
+        color: var(--gray-300);
+    }
+
+    .table-pagination {
+        background-color: var(--gray-800);
+        border-top-color: var(--gray-700);
+    }
+
+    .pagination-btn {
+        background-color: var(--gray-700);
+        border-color: var(--gray-600);
+        color: var(--gray-300);
+    }
+
+    .pagination-btn:hover {
+        background-color: var(--health-blue);
+        border-color: var(--health-blue);
+        color: var(--white);
+    }
+
+    .pagination-btn.active {
+        background-color: var(--health-blue);
+        border-color: var(--health-blue);
+        color: var(--white);
+    }
+
+    .table-empty {
+        color: var(--gray-400);
+    }
+
+    .table-empty-title {
+        color: var(--gray-300);
+    }
+}

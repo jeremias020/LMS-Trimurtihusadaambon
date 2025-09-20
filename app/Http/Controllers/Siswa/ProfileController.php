@@ -1,0 +1,292 @@
+<?php
+
+namespace App\Http\Controllers\Siswa;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Student;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+
+class ProfileController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    /**
+     * Display the student profile.
+     */
+    public function index()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        /** @var \App\Models\Student $student */
+        $student = Student::with('kelas')->where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        return view('siswa.profile.index', compact('user', 'student'));
+    }
+
+    /**
+     * Show the form for editing the profile.
+     */
+    public function edit()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        /** @var \App\Models\Student $student */
+        $student = Student::with('kelas')->where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        return view('siswa.profile.edit', compact('user', 'student'));
+    }
+
+    /**
+     * Update the student profile.
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        /** @var \App\Models\Student $student */
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'nis' => 'required|string|unique:students,nis,' . $student->id,
+            'jenis_kelamin' => 'required|in:L,P',
+            'tanggal_lahir' => 'required|date',
+            'alamat' => 'nullable|string|max:500',
+            'no_telepon' => 'nullable|string|max:15',
+            'nama_ortu' => 'nullable|string|max:255',
+            'no_telepon_ortu' => 'nullable|string|max:15',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'current_password' => 'required_with:password',
+            'password' => 'nullable|string|min:6|confirmed'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            $userData = [
+                'name' => $request->name,
+                'email' => $request->email,
+            ];
+
+            if ($request->filled('password')) {
+                if (!Hash::check($request->current_password, $user->password)) {
+                    return redirect()->back()
+                        ->with('error', 'Password saat ini tidak sesuai')
+                        ->withInput();
+                }
+                $userData['password'] = Hash::make($request->password);
+            }
+
+            if ($request->hasFile('foto')) {
+                if ($user->photo) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+
+                $foto = $request->file('foto');
+                $filename = time() . '_' . $foto->getClientOriginalName();
+                $path = $foto->storeAs('profile_photos', $filename, 'public');
+                $userData['photo'] = 'profile_photos/' . $filename;
+            }
+
+            $user->update($userData); // ✅ IDE sekarang mengenali method ini
+
+            $studentData = [
+                'nis' => $request->nis,
+                'name' => $request->name,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat' => $request->alamat,
+                'no_telepon' => $request->no_telepon,
+                'nama_ortu' => $request->nama_ortu,
+                'no_telepon_ortu' => $request->no_telepon_ortu,
+            ];
+
+            $student->update($studentData); // ✅ Dan ini juga
+
+            Log::info('Student profile updated', [
+                'user_id' => $user->id,
+                'student_id' => $student->id,
+                'ip' => $request->ip()
+            ]);
+
+            return redirect()->route('siswa.profile.index')
+                ->with('success', 'Profil berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            Log::error('Profile update failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'ip' => $request->ip()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui profil: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Update student password.
+     */
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()
+                ->with('error', 'Password saat ini tidak sesuai');
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]); // ✅ IDE sekarang mengenali method ini
+
+        Log::info('Student password updated', [
+            'user_id' => $user->id,
+            'ip' => $request->ip()
+        ]);
+
+        return redirect()->route('siswa.profile.index')
+            ->with('success', 'Password berhasil diubah!');
+    }
+
+    /**
+     * Display medical information.
+     */
+    public function medicalInfo()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        /** @var \App\Models\Student $student */
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        return view('siswa.profile.medical', compact('user', 'student'));
+    }
+
+    /**
+     * Update medical information.
+     */
+    public function updateMedicalInfo(Request $request): RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return redirect()->route('dashboard')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        /** @var \App\Models\Student $student */
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Data siswa tidak ditemukan.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'golongan_darah' => 'nullable|in:A,B,AB,O',
+            'riwayat_penyakit' => 'nullable|string|max:1000',
+            'alergi' => 'nullable|string|max:500',
+            'info_kesehatan' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $student->update([
+            'golongan_darah' => $request->golongan_darah,
+            'riwayat_penyakit' => $request->riwayat_penyakit,
+            'alergi' => $request->alergi,
+            'info_kesehatan' => $request->info_kesehatan,
+        ]); // ✅ IDE sekarang mengenali method ini
+
+        Log::info('Student medical info updated', [
+            'student_id' => $student->id,
+            'user_id' => $user->id,
+            'ip' => $request->ip()
+        ]);
+
+        return redirect()->route('siswa.profile.medical')
+            ->with('success', 'Informasi kesehatan berhasil diperbarui!');
+    }
+}

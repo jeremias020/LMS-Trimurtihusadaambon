@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('attendances', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('siswa_id')->constrained('users')->onDelete('cascade');
+            $table->date('tanggal');
+            $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha']);
+            $table->text('keterangan')->nullable();
+            $table->timestamp('waktu_masuk')->nullable();
+            $table->timestamp('waktu_keluar')->nullable();
+            $table->timestamps();
+
+            $table->unique(['siswa_id', 'tanggal']);
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('attendances');
+    }
+};

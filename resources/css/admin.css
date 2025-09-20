@@ -1,0 +1,329 @@
+/* CSS Khusus untuk Admin LMS - SMK Kesehatan */
+
+.admin-layout {
+    background-color: var(--gray-100);
+}
+
+/* Sidebar Admin */
+.sidebar-admin {
+    background: linear-gradient(180deg, var(--health-blue) 0%, #1e3d72 100%);
+}
+
+.sidebar-admin .sidebar-brand {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-admin .sidebar-brand img {
+    height: 2rem;
+}
+
+.sidebar-admin .sidebar-header {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-admin .user-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-admin .user-pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebar-admin .user-info {
+    text-align: center;
+}
+
+.sidebar-admin .user-name {
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-admin .user-role {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+}
+
+.sidebar-admin .sidebar-menu {
+    padding: 1rem 0;
+}
+
+.sidebar-admin .header-menu {
+    padding: 0.5rem 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-admin .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.sidebar-admin .nav-link:hover {
+    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-admin .nav-link.active {
+    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left-color: var(--white);
+}
+
+.sidebar-admin .nav-link i {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.5rem;
+}
+
+/* Admin Dashboard */
+.admin-stats .stat-card {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--health-blue);
+}
+
+.admin-stats .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+}
+
+.admin-stats .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--health-blue);
+}
+
+.admin-stats .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+}
+
+.admin-stats .stat-label {
+    color: var(--gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+/* Health Stats Variants */
+.stat-card.health-stat {
+    border-left-color: var(--health-green);
+}
+
+.stat-card.health-stat .stat-icon {
+    color: var(--health-green);
+}
+
+.stat-card.practice-stat {
+    border-left-color: var(--health-teal);
+}
+
+.stat-card.practice-stat .stat-icon {
+    color: var(--health-teal);
+}
+
+/* User Management */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--health-light-blue);
+}
+
+.user-status {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.user-status.online {
+    background-color: var(--success);
+}
+
+.user-status.offline {
+    background-color: var(--secondary);
+}
+
+.user-status.busy {
+    background-color: var(--danger);
+}
+
+/* Settings Panel */
+.settings-panel .setting-item {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--info);
+}
+
+.settings-panel .setting-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Diperbaiki dari 'between' */
+    margin-bottom: 1rem;
+}
+
+.settings-panel .setting-title {
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 0;
+}
+
+.settings-panel .setting-description {
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+}
+
+/* Health-specific Settings */
+.health-setting {
+    border-left-color: var(--health-blue);
+}
+
+.health-setting .setting-title {
+    color: var(--health-blue);
+}
+
+/* Reports Section */
+.reports-filters {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+.reports-results {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+/* Health Report Cards */
+.health-report-card {
+    border-left: 4px solid var(--health-green);
+}
+
+.practice-report-card {
+    border-left: 4px solid var(--health-teal);
+}
+
+/* DataTables Customization */
+.dataTables_wrapper {
+    margin-top: 1.5rem;
+}
+
+.dataTables_filter input {
+    border: 1px solid var(--gray-300);
+    border-radius: 0.35rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.dataTables_length select {
+    border: 1px solid var(--gray-300);
+    border-radius: 0.35rem;
+    padding: 0.375rem 2rem 0.375rem 0.75rem;
+}
+
+/* Chart Containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1.5rem;
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .sidebar-admin {
+        position: fixed;
+        z-index: 1040;
+        width: 250px;
+        transform: translateX(-250px);
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar-admin.show {
+        transform: translateX(0);
+    }
+
+    .admin-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-stats .stat-card {
+        margin-bottom: 1rem;
+    }
+
+    .settings-panel .setting-item {
+        padding: 1rem;
+    }
+
+    .reports-filters,
+    .reports-results {
+        padding: 1rem;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .admin-layout {
+        background-color: var(--gray-900);
+    }
+
+    .admin-stats .stat-card,
+    .settings-panel .setting-item,
+    .reports-filters,
+    .reports-results {
+        background-color: var(--gray-800);
+        color: var(--white);
+    }
+
+    .admin-stats .stat-number,
+    .settings-panel .setting-title {
+        color: var(--white);
+    }
+
+    .admin-stats .stat-label,
+    .settings-panel .setting-description {
+        color: var(--gray-400);
+    }
+
+    .reports-filters,
+    .reports-results {
+        border-color: var(--gray-700);
+    }
+}

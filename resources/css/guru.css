@@ -1,0 +1,428 @@
+/* CSS Khusus untuk Guru LMS - SMK Kesehatan */
+
+.guru-layout {
+    background-color: var(--gray-100);
+}
+
+/* Sidebar Guru */
+.sidebar-guru {
+    background: linear-gradient(180deg, var(--health-green) 0%, #1e7e5e 100%);
+}
+
+.sidebar-guru .sidebar-brand {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-guru .sidebar-brand img {
+    height: 2rem;
+}
+
+.sidebar-guru .sidebar-header {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-guru .user-pic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-guru .user-pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebar-guru .user-info {
+    text-align: center;
+}
+
+.sidebar-guru .user-name {
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-guru .user-role {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+}
+
+.sidebar-guru .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.sidebar-guru .nav-link:hover {
+    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-guru .nav-link.active {
+    color: var(--white);
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left-color: var(--white);
+}
+
+/* Guru Dashboard */
+.guru-stats .stat-card {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--health-green);
+}
+
+.guru-stats .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+}
+
+.guru-stats .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--health-green);
+}
+
+/* Health-specific stat cards */
+.guru-stats .stat-card.health-stat {
+    border-left-color: var(--health-teal);
+}
+
+.guru-stats .stat-card.health-stat .stat-icon {
+    color: var(--health-teal);
+}
+
+/* Material Management */
+.material-card {
+    transition: all 0.3s ease;
+    border: 1px solid var(--gray-200);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.material-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.material-thumbnail {
+    height: 120px;
+    background: linear-gradient(135deg, var(--health-blue) 0%, var(--health-teal) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+}
+
+/* Health Material Badge */
+.health-material-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--health-green);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Assignment Management */
+.assignment-card {
+    border-left: 4px solid var(--warning);
+    border-radius: 0.5rem;
+}
+
+.assignment-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-draft {
+    background-color: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.status-published {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: var(--health-green);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.status-closed {
+    background-color: rgba(227, 52, 47, 0.2);
+    color: var(--health-red);
+    border: 1px solid rgba(227, 52, 47, 0.3);
+}
+
+/* Practical Management */
+.practical-schedule {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--gray-200);
+}
+
+.schedule-item {
+    padding: 1rem;
+    border-left: 4px solid var(--info);
+    margin-bottom: 1rem;
+    background: var(--gray-100);
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.schedule-item:hover {
+    background: var(--gray-200);
+    transform: translateX(5px);
+}
+
+/* Health Practical Item */
+.schedule-item.health-practical {
+    border-left-color: var(--health-blue);
+    background: rgba(44, 90, 160, 0.1);
+}
+
+/* Scoring System */
+.scoring-table th {
+    background-color: var(--gray-100);
+}
+
+.score-input {
+    width: 80px;
+    text-align: center;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+}
+
+.score-input:focus {
+    border-color: var(--health-blue);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.1);
+}
+
+.student-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.5rem;
+    border: 2px solid var(--health-light-blue);
+}
+
+/* Attendance System */
+.attendance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.attendance-card {
+    background: var(--white);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+}
+
+.attendance-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.attendance-card .card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--health-blue);
+}
+
+.attendance-card .card-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--gray-800);
+}
+
+.attendance-card .card-label {
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+/* Health Status Cards */
+.attendance-card.health-status {
+    border-left: 4px solid var(--health-green);
+}
+
+.attendance-card.health-status .card-icon {
+    color: var(--health-green);
+}
+
+/* Progress Bars */
+.progress {
+    height: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: var(--gray-200);
+    border-radius: 0.25rem;
+}
+
+.progress-bar {
+    background-color: var(--health-blue);
+    border-radius: 0.25rem;
+}
+
+.progress-sm {
+    height: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .guru-stats .stat-card {
+        margin-bottom: 1rem;
+    }
+
+    .attendance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .scoring-table {
+        font-size: 0.875rem;
+    }
+
+    .score-input {
+        width: 60px;
+    }
+
+    .material-thumbnail {
+        height: 100px;
+    }
+}
+
+/* Animation for interactive elements */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Custom file upload */
+.file-upload {
+    border: 2px dashed var(--gray-300);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: var(--gray-100);
+}
+
+.file-upload:hover {
+    border-color: var(--health-blue);
+    background: var(--gray-200);
+}
+
+.file-upload.drag-over {
+    border-color: var(--health-green);
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.file-preview {
+    margin-top: 1rem;
+}
+
+.file-preview-item {
+    background: var(--white);
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Diperbaiki dari 'between' */
+    border: 1px solid var(--gray-200);
+}
+
+.file-preview-item .file-icon {
+    margin-right: 0.75rem;
+    color: var(--gray-600);
+}
+
+.file-preview-item .file-info {
+    flex: 1;
+}
+
+.file-preview-item .file-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--gray-800);
+}
+
+.file-preview-item .file-size {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+/* Health File Type */
+.file-preview-item.health-file {
+    border-left: 3px solid var(--health-blue);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .guru-layout {
+        background-color: var(--gray-900);
+    }
+
+    .material-card,
+    .practical-schedule,
+    .attendance-card,
+    .file-upload,
+    .file-preview-item {
+        background-color: var(--gray-800);
+        border-color: var(--gray-700);
+    }
+
+    .material-thumbnail {
+        background: linear-gradient(135deg, var(--health-blue) 0%, var(--health-purple) 100%);
+    }
+
+    .schedule-item {
+        background-color: var(--gray-750);
+    }
+
+    .schedule-item:hover {
+        background-color: var(--gray-700);
+    }
+
+    .file-upload {
+        background-color: var(--gray-800);
+    }
+
+    .file-upload:hover {
+        background-color: var(--gray-750);
+    }
+
+    .attendance-card .card-number {
+        color: var(--white);
+    }
+}

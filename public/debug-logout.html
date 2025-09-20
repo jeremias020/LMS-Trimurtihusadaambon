@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Logout Functionality Debug</h1>
+        
+        <div class="test-result warning">
+            <strong>⚠️ Important:</strong> This page should be accessed while logged in to your LMS system.
+        </div>
+
+        <h2>Test 1: Check Current Authentication Status</h2>
+        <button onclick="checkAuthStatus()">Check Auth Status</button>
+        <div id="authResult"></div>
+
+        <h2>Test 2: Verify Logout Elements Exist</h2>
+        <button onclick="checkLogoutElements()">Check Logout Elements</button>
+        <div id="elementsResult"></div>
+
+        <h2>Test 3: Test Logout Form Submission</h2>
+        <button onclick="testLogoutForm()">Test Logout Form</button>
+        <div id="formResult"></div>
+
+        <h2>Test 4: Console Errors Check</h2>
+        <button onclick="checkConsoleErrors()">Check for JS Errors</button>
+        <div id="errorsResult"></div>
+
+        <h2>Manual Tests</h2>
+        <div class="test-result warning">
+            <strong>Manual Tests to Perform:</strong>
+            <ol>
+                <li>Open browser Developer Tools (F12)</li>
+                <li>Go to Console tab</li>
+                <li>Try clicking the logout button in your LMS</li>
+                <li>Watch for any JavaScript errors in the console</li>
+                <li>Check if the confirmation dialog appears</li>
+                <li>Check if the POST request is made to /logout</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function showResult(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-result ${type}">${message}</div>`;
+        }
+
+        function checkAuthStatus() {
+            // Try to detect if we're on the LMS domain
+            const isLMSDomain = window.location.hostname.includes('localhost') || 
+                               window.location.hostname.includes('127.0.0.1') ||
+                               window.location.hostname.includes('lms');
+            
+            if (!isLMSDomain) {
+                showResult('authResult', '❌ This test page should be run from your LMS domain', 'error');
+                return;
+            }
+
+            // Check for common authentication indicators
+            const hasAuthCookie = document.cookie.includes('laravel_session') || 
+                                 document.cookie.includes('XSRF-TOKEN');
+            
+            let result = hasAuthCookie ? 
+                '✅ Authentication cookies found' : 
+                '⚠️ No authentication cookies detected';
+            
+            result += `<br><strong>Current URL:</strong> ${window.location.href}`;
+            result += `<br><strong>Cookies:</strong> ${document.cookie || 'None'}`;
+            
+            showResult('authResult', result, hasAuthCookie ? 'success' : 'warning');
+        }
+
+        function checkLogoutElements() {
+            let results = [];
+            
+            // Check for logout form
+            const logoutForm = document.getElementById('logout-form');
+            results.push(logoutForm ? 
+                '✅ Logout form found' : 
+                '❌ Logout form not found (ID: logout-form)');
+            
+            // Check for logout link
+            const logoutLink = document.querySelector('a[onclick*="logout-form"]');
+            results.push(logoutLink ? 
+                '✅ Logout link found' : 
+                '❌ Logout link not found');
+            
+            // Check for CSRF token
+            const csrfToken = document.querySelector('input[name="_token"]') || 
+                             document.querySelector('meta[name="csrf-token"]');
+            results.push(csrfToken ? 
+                '✅ CSRF token found' : 
+                '❌ CSRF token not found');
+            
+            showResult('elementsResult', results.join('<br>'), 
+                results.every(r => r.includes('✅')) ? 'success' : 'error');
+        }
+
+        function testLogoutForm() {
+            const logoutForm = document.getElementById('logout-form');
+            
+            if (!logoutForm) {
+                showResult('formResult', '❌ Cannot test: logout form not found', 'error');
+                return;
+            }
+            
+            let results = [];
+            results.push(`✅ Form action: ${logoutForm.action}`);
+            results.push(`✅ Form method: ${logoutForm.method}`);
+            
+            const csrfInput = logoutForm.querySelector('input[name="_token"]');
+            results.push(csrfInput ? 
+                `✅ CSRF token present: ${csrfInput.value.substring(0, 20)}...` : 
+                '❌ CSRF token missing');
+            
+            results.push('<br><strong>⚠️ Note:</strong> Form submission test skipped to prevent actual logout');
+            
+            showResult('formResult', results.join('<br>'), 'success');
+        }
+
+        function checkConsoleErrors() {
+            // Override console.error to catch errors
+            const originalError = console.error;
+            const errors = [];
+            
+            console.error = function(...args) {
+                errors.push(args.join(' '));
+                originalError.apply(console, args);
+            };
+            
+            setTimeout(() => {
+                console.error = originalError;
+                
+                let result = errors.length === 0 ? 
+                    '✅ No console errors detected in the last few seconds' :
+                    `❌ Console errors found:<br><pre>${errors.join('\n')}</pre>`;
+                
+                showResult('errorsResult', result, errors.length === 0 ? 'success' : 'error');
+            }, 3000);
+            
+            showResult('errorsResult', '⏳ Monitoring for console errors for 3 seconds...', 'warning');
+        }
+
+        // Auto-run basic checks when page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                checkAuthStatus();
+                checkLogoutElements();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
