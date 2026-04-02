@@ -880,14 +880,34 @@ body {
                         </div>
 
                         <div class="form-group">
+                            <label for="class_id" class="form-label">
+                                Kelas <span class="required">*</span>
+                            </label>
+                            <select name="class_id" id="class_id" class="form-input" required>
+                                <option value="">-- Pilih Kelas --</option>
+                                @foreach($classes as $class)
+                                <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('class_id')
+                                <div class="error-message">
+                                    <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
                             <label for="subject_id" class="form-label">
                                 Mata Pelajaran <span class="required">*</span>
                             </label>
                             <select name="subject_id" id="subject_id" class="form-input" required>
                                 <option value="">-- Pilih Mata Pelajaran --</option>
-                                @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
+                                @foreach($classSubjects as $classSubject)
+                                <option value="{{ $classSubject->id }}" {{ old('subject_id') == $classSubject->id ? 'selected' : '' }}>
+                                    {{ $classSubject->subject_name }}
                                 </option>
                                 @endforeach
                             </select>
@@ -901,26 +921,7 @@ body {
                             @enderror
                         </div>
 
-                        <div class="form-group">
-                            <label for="category" class="form-label">
-                                Kategori Materi <span class="required">*</span>
-                            </label>
-                            <select name="category" id="category" class="form-input" required>
-                                <option value="">-- Pilih Kategori --</option>
-                                @foreach($categories as $key => $value)
-                                <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $value }}</option>
-                                @endforeach
-                            </select>
-                            @error('category')
-                                <div class="error-message">
-                                    <svg class="error-icon" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
+                        
                         <div class="form-group">
                             <label class="form-label">Pengaturan Publikasi</label>
                             <div class="checkbox-group">
@@ -1267,7 +1268,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Basic validation
             const judul = document.getElementById('judul').value.trim();
             const subjectId = document.getElementById('subject_id').value;
-            const category = document.getElementById('category').value;
             const file = document.getElementById('file').files[0];
             
             if (!judul) {
@@ -1284,16 +1284,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (!category) {
-                e.preventDefault();
-                showNotification('Kategori materi wajib dipilih!', 'error');
-                document.getElementById('category').focus();
-                return;
-            }
-            
             if (!file) {
                 e.preventDefault();
                 showNotification('File materi wajib diupload!', 'error');
+                document.getElementById('file').focus();
                 return;
             }
             

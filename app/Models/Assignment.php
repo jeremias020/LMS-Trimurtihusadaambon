@@ -12,25 +12,19 @@ class Assignment extends Model
 
     protected $fillable = [
         'guru_id',
-        'subject_id',
-        'kelas_id',
+        'class_subject_id',
         'title',
         'description',
         'instructions',
-        'file',
-        'file_path',
-        'file_size',
-        'file_type',
-        'deadline',
+        'file_url',
+        'due_date',
         'max_score',
-        'is_published',
-        'class', // Keep for backward compatibility
         'allow_late',
+        'is_published',
     ];
 
     protected $casts = [
-        'deadline' => 'datetime',
-        'is_published' => 'boolean',
+        'due_date' => 'datetime',
         'max_score' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -52,6 +46,23 @@ class Assignment extends Model
     {
         return $this->belongsTo(Kelas::class);
     }
+    
+    // Manual relationship for class_subject
+    public function getClassSubject()
+    {
+        return \DB::table('class_subjects')
+            ->join('subjects', 'class_subjects.subject_id', '=', 'subjects.id')
+            ->join('classes', 'class_subjects.class_id', '=', 'classes.id')
+            ->where('class_subjects.id', $this->class_subject_id)
+            ->select(
+                'class_subjects.id',
+                'subjects.name as subject_name',
+                'subjects.id as subject_id',
+                'classes.name as class_name',
+                'classes.id as class_id'
+            )
+            ->first();
+    }
 
     public function submissions()
     {
@@ -71,20 +82,32 @@ class Assignment extends Model
         );
     }
 
+    // Accessors for backward compatibility
+    public function getDeadlineAttribute($value)
+    {
+        return $this->due_date;
+    }
+
+    public function setDeadlineAttribute($value)
+    {
+        $this->attributes['due_date'] = $value;
+    }
+
     // Scopes
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        // Assignments don't have published status, all are considered published
+        return $query;
     }
 
     public function scopeActive($query)
     {
-        return $query->where('deadline', '>', now());
+        return $query->where('due_date', '>', now());
     }
 
     public function scopeExpired($query)
     {
-        return $query->where('deadline', '<=', now());
+        return $query->where('due_date', '<=', now());
     }
 
     public function scopeByGuru($query, $guruId)

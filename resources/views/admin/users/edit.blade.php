@@ -1,159 +1,158 @@
-@extends('layouts.admin')
+@extends('admin.layouts.admin-layout')
 
 @section('title', 'Edit Pengguna - ' . $user->name)
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Edit Pengguna</h1>
-    <p class="text-gray-600">Perbarui informasi pengguna - SMK Kesehatan Trimurti Husada Ambon</p>
+<div class="mb-4">
+    <h1 class="h3 fw-bold text-dark mb-1">Edit Pengguna</h1>
+    <p class="text-muted">Perbarui informasi pengguna - SMK Kesehatan Trimurti Husada Ambon</p>
 </div>
 
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
-    <span class="block sm:inline">{{ session('success') }}</span>
-</div>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 @endif
 
 @if(session('error'))
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-    <span class="block sm:inline">{{ session('error') }}</span>
-</div>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 @endif
 
 @if($errors->any())
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-    <ul class="list-disc list-inside">
+<div class="alert alert-danger" role="alert">
+    <ul class="mb-0 ps-3">
         @foreach($errors->all() as $error)
             <li>{{ $error }}</li>
         @endforeach
     </ul>
-</div>
+    </div>
 @endif
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-800">Edit: {{ $user->name }}</h2>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Edit: {{ $user->name }}</h5>
     </div>
 
     <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data"
           data-user-nip="{{ old('nip', $user->nip) }}"
           data-user-subject="{{ old('subject', $user->subject) }}"
           data-user-nis="{{ old('nis', $user->nis) }}"
-          data-user-class="{{ old('class', $user->class) }}"
+          data-user-kelas-id="{{ old('kelas_id', $user->kelas_id) }}"
+          data-user-jurusan-id="{{ old('jurusan_id', $user->jurusan_id) }}"
           data-user-birth-date="{{ old('birth_date', $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}"
           data-user-address="{{ old('address', $user->address) }}">
         @csrf
         @method('PUT')
 
-        <div class="px-6 py-4 space-y-6">
+        <div class="card-body">
             <!-- Personal Information -->
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Pribadi</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-group">
+            <div class="mb-4">
+                <h6 class="fw-semibold mb-3">Informasi Pribadi</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
                         <label for="name" class="form-label">Nama Lengkap *</label>
-                        <input type="text" name="name" id="name" class="form-input" value="{{ old('name', $user->name) }}" required>
+                        <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $user->name) }}" required>
                         @error('name')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="email" class="form-label">Alamat Email *</label>
-                        <input type="email" name="email" id="email" class="form-input" value="{{ old('email', $user->email) }}" required>
+                        <input type="email" name="email" id="email" class="form-control" value="{{ old('email', $user->email) }}" required>
                         @error('email')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="phone" class="form-label">Nomor Telepon</label>
-                        <input type="tel" name="phone" id="phone" class="form-input" value="{{ old('phone', $user->phone) }}"
+                        <input type="tel" name="phone" id="phone" class="form-control" value="{{ old('phone', $user->phone) }}"
                                pattern="^\+62\d{9,12}$" placeholder="+628123456789">
-                        <p class="text-xs text-gray-500 mt-1">Format: +62 diikuti 9-12 digit angka</p>
+                        <small class="text-muted d-block mt-1">Format: +62 diikuti 9-12 digit angka</small>
                         @error('phone')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="avatar" class="form-label">Foto Profil</label>
-                        <div class="flex items-center space-x-4">
-                            <div class="flex-shrink-0">
-                                <img src="{{ $user->avatar_url ?? asset('images/default-avatar.png') }}" alt="{{ $user->name }}" class="h-16 w-16 rounded-full object-cover">
-                            </div>
-                            <div class="flex-1">
-                                <input type="file" name="avatar" id="avatar" class="form-input" accept="image/*">
-                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF. Maks: 2MB</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="{{ $user->avatar_url ?? asset('images/default-avatar.png') }}" alt="{{ $user->name }}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">
+                            <div class="flex-grow-1">
+                                <input type="file" name="avatar" id="avatar" class="form-control" accept="image/*">
+                                <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF. Maks: 2MB</small>
                                 @error('avatar')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
-                        <div id="avatarPreview" class="mt-2 hidden">
-                            <img src="" alt="Preview" class="h-20 w-20 rounded-full object-cover">
+                        <div id="avatarPreview" class="mt-2 d-none">
+                            <img src="" alt="Preview" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;">
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Account Information -->
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Akun</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-group">
+            <div class="mb-4">
+                <h6 class="fw-semibold mb-3">Informasi Akun</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
                         <label for="role" class="form-label">Role *</label>
-                        <select name="role" id="role" class="form-input" required>
+                        <select name="role" id="role" class="form-select" required>
                             <option value="">Pilih Role</option>
                             <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="guru" {{ old('role', $user->role) == 'guru' ? 'selected' : '' }}>Guru</option>
                             <option value="siswa" {{ old('role', $user->role) == 'siswa' ? 'selected' : '' }}>Siswa</option>
                         </select>
                         @error('role')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="is_active" class="form-label">Status Akun</label>
-                        <select name="is_active" id="is_active" class="form-input">
+                        <select name="is_active" id="is_active" class="form-select">
                             <option value="1" {{ old('is_active', $user->is_active) == '1' ? 'selected' : '' }}>Aktif</option>
                             <option value="0" {{ old('is_active', $user->is_active) == '0' ? 'selected' : '' }}>Nonaktif</option>
                         </select>
                         @error('is_active')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" name="password" id="password" class="form-input" placeholder="Kosongkan jika tidak ingin mengubah" minlength="8">
-                        <p class="text-xs text-gray-500 mt-1">Minimal 8 karakter</p>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah" minlength="8">
+                        <small class="text-muted d-block mt-1">Minimal 8 karakter</small>
                         @error('password')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <div class="form-group">
+                    <div class="col-md-6">
                         <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
-                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-input" placeholder="Kosongkan jika tidak ingin mengubah">
+                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah">
                     </div>
                 </div>
             </div>
 
             <!-- Additional Information (Conditional based on role) -->
-            <div id="additionalInfo">
+            <div id="additionalInfo" class="mb-2">
                 <!-- This will be populated based on selected role using JavaScript -->
             </div>
         </div>
 
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-            <a href="{{ route('admin.users.index') }}" class="btn-secondary">
-                Batal
-            </a>
-            <button type="submit" class="btn-primary">
-                Perbarui Pengguna
-            </button>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-primary">Perbarui Pengguna</button>
         </div>
     </form>
 </div>
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (file.size > 2 * 1024 * 1024) {
                 alert('Ukuran file maksimal 2MB');
                 this.value = '';
-                avatarPreview.classList.add('hidden');
+                avatarPreview.classList.add('d-none');
                 return;
             }
 
@@ -181,18 +180,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!validTypes.includes(file.type)) {
                 alert('Format file harus JPG, PNG, atau GIF');
                 this.value = '';
-                avatarPreview.classList.add('hidden');
+                avatarPreview.classList.add('d-none');
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
-                avatarPreview.classList.remove('hidden');
+                avatarPreview.classList.remove('d-none');
             };
             reader.readAsDataURL(file);
         } else {
-            avatarPreview.classList.add('hidden');
+            avatarPreview.classList.add('d-none');
         }
     });
 
@@ -209,26 +208,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const userNip = form.dataset.userNip || '';
         const userSubject = form.dataset.userSubject || '';
         const userNis = form.dataset.userNis || '';
-        const userClass = form.dataset.userClass || '';
+        const userKelasId = form.dataset.userKelasId || '';
+        const userJurusanId = form.dataset.userJurusanId || '';
         const userBirthDate = form.dataset.userBirthDate || '';
         const userAddress = form.dataset.userAddress || '';
 
         switch(role) {
             case 'guru':
                 html = `
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Guru</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="form-group">
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Informasi Guru</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <label for="nip" class="form-label">NIP *</label>
-                                <input type="text" name="nip" id="nip" class="form-input" value="${userNip}" required>
+                                <input type="text" name="nip" id="nip" class="form-control" value="${userNip}" required>
                                 @error('nip')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-group">
+                            <div class="col-md-6">
                                 <label for="subject" class="form-label">Mata Pelajaran *</label>
-                                <select name="subject" id="subject" class="form-input" required>
+                                <select name="subject" id="subject" class="form-select" required>
                                     <option value="">Pilih Mata Pelajaran</option>
                                     <option value="Keperawatan Dasar" ${userSubject == 'Keperawatan Dasar' ? 'selected' : ''}>Keperawatan Dasar</option>
                                     <option value="Anatomi Fisiologi" ${userSubject == 'Anatomi Fisiologi' ? 'selected' : ''}>Anatomi Fisiologi</option>
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <option value="Praktik Klinik" ${userSubject == 'Praktik Klinik' ? 'selected' : ''}>Praktik Klinik</option>
                                 </select>
                                 @error('subject')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -247,44 +247,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
 
             case 'siswa':
+                const jurusanOptions = `
+                    <option value="">Pilih Jurusan (opsional)</option>
+                    @foreach(($jurusans ?? []) as $jur)
+                        <option value="{{ $jur->id }}" ${userJurusanId == '{{ $jur->id }}' ? 'selected' : ''}>
+                            {{ $jur->nama }} ({{ $jur->kode }})
+                        </option>
+                    @endforeach
+                `;
+                const kelasOptions = `
+                    <option value="">Pilih Kelas</option>
+                    @foreach(($kelas ?? []) as $k)
+                        <option value="{{ $k->id }}" ${userKelasId == '{{ $k->id }}' ? 'selected' : ''}>
+                            {{ $k->grade }} {{ $k->major }} - {{ $k->name }} ({{ $k->code }})
+                        </option>
+                    @endforeach
+                `;
+
                 html = `
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Siswa</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="form-group">
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3">Informasi Siswa</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <label for="nis" class="form-label">NIS *</label>
-                                <input type="text" name="nis" id="nis" class="form-input" value="${userNis}" required>
+                                <input type="text" name="nis" id="nis" class="form-control" value="${userNis}" required>
                                 @error('nis')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-group">
-                                <label for="class" class="form-label">Kelas *</label>
-                                <select name="class" id="class" class="form-input" required>
-                                    <option value="">Pilih Kelas</option>
-                                    <option value="X Keperawatan" ${userClass == 'X Keperawatan' ? 'selected' : ''}>X Keperawatan</option>
-                                    <option value="XI Keperawatan" ${userClass == 'XI Keperawatan' ? 'selected' : ''}>XI Keperawatan</option>
-                                    <option value="XII Keperawatan" ${userClass == 'XII Keperawatan' ? 'selected' : ''}>XII Keperawatan</option>
-                                    <option value="X Farmasi" ${userClass == 'X Farmasi' ? 'selected' : ''}>X Farmasi</option>
-                                    <option value="XI Farmasi" ${userClass == 'XI Farmasi' ? 'selected' : ''}>XI Farmasi</option>
-                                    <option value="XII Farmasi" ${userClass == 'XII Farmasi' ? 'selected' : ''}>XII Farmasi</option>
+                            <div class="col-md-6">
+                                <label for="jurusan_id" class="form-label">Jurusan</label>
+                                <select name="jurusan_id" id="jurusan_id" class="form-select">
+                                    ${jurusanOptions}
                                 </select>
-                                @error('class')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @error('jurusan_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-group">
+                            <div class="col-md-6">
+                                <label for="kelas_id" class="form-label">Kelas *</label>
+                                <select name="kelas_id" id="kelas_id" class="form-select" required>
+                                    ${kelasOptions}
+                                </select>
+                                @error('kelas_id')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
                                 <label for="birth_date" class="form-label">Tanggal Lahir *</label>
-                                <input type="date" name="birth_date" id="birth_date" class="form-input" value="${userBirthDate}" required max="{{ date('Y-m-d') }}">
+                                <input type="date" name="birth_date" id="birth_date" class="form-control" value="${userBirthDate}" required max="{{ date('Y-m-d') }}">
                                 @error('birth_date')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-group">
+                            <div class="col-md-12">
                                 <label for="address" class="form-label">Alamat *</label>
-                                <textarea name="address" id="address" class="form-input" rows="3" required>${userAddress}</textarea>
+                                <textarea name="address" id="address" class="form-control" rows="3" required>${userAddress}</textarea>
                                 @error('address')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>

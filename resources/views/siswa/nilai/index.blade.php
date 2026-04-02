@@ -44,13 +44,13 @@
 
                 <!-- Export Buttons -->
                 <div class="btn-group ms-2">
-                    <a href="{{ route('siswa.nilai.export', ['format' => 'pdf']) }}" 
+                    <a href="{{ route('siswa.nilai.export') }}" 
                        class="btn btn-outline-danger export-btn" 
                        title="Export ke PDF"
                        data-format="pdf">
                         <i class="fas fa-file-pdf"></i>
                     </a>
-                    <a href="{{ route('siswa.nilai.export', ['format' => 'excel']) }}" 
+                    <a href="{{ route('siswa.nilai.export') }}" 
                        class="btn btn-outline-success export-btn" 
                        title="Export ke Excel"
                        data-format="excel">
@@ -84,7 +84,7 @@
                                 @forelse($scores as $subject => $scoreData)
                                     <tr>
                                         <td>{{ $subject }}</td>
-                                        <td>{{ $scoreData['semester'] }}</td>
+                                        <td>{{ $scoreData['semester'] ?? '-' }}</td>
                                         <td>{{ $scoreData['assignment_score'] ?? '-' }}</td>
                                         <td>{{ $scoreData['practical_score'] ?? '-' }}</td>
                                         <td>{{ $scoreData['midterm_score'] ?? '-' }}</td>
@@ -118,11 +118,15 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('siswa.nilai.show', ['subject' => urlencode($subject), 'semester' => $scoreData['semester']]) }}"
-                                               class="btn btn-sm btn-info"
-                                               title="Lihat detail nilai {{ $subject }}">
-                                                <i class="fas fa-chart-line"></i> Detail
-                                            </a>
+                                            @if(Route::has('siswa.nilai.show'))
+                                                <a href="{{ route('siswa.nilai.show', ['subject' => urlencode($subject), 'semester' => $scoreData['semester'] ?? 'all']) }}"
+                                                   class="btn btn-sm btn-info"
+                                                   title="Lihat detail nilai {{ $subject }}">
+                                                    <i class="fas fa-chart-line"></i> Detail
+                                                </a>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
@@ -142,7 +146,7 @@
         </div>
     </div>
 
-    @if($scores->count() > 0)
+    @if(collect($scores)->count() > 0)
         <div class="row mt-4">
             <div class="col-lg-6">
                 <div class="card shadow">
@@ -178,7 +182,7 @@
 @endsection
 
 @push('js')
-@if($scores->count() > 0)
+@if(collect($scores)->count() > 0)
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -206,13 +210,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Chart untuk nilai per mata pelajaran
     const subjectCtx = document.getElementById('subjectScoresChart');
     if (subjectCtx && window.Chart) {
+        const scoresData = @json($scores);
+        const labels = Object.keys(scoresData || {});
+        const finalGrades = labels.map(k => (scoresData[k] && scoresData[k].final_grade !== undefined && scoresData[k].final_grade !== null) ? scoresData[k].final_grade : null);
         const subjectChart = new Chart(subjectCtx, {
             type: 'bar',
             data: {
-                labels: @json(array_keys($scores)),
+                labels: labels,
                 datasets: [{
                     label: 'Nilai Akhir',
-                    data: @json(array_column($scores, 'final_grade')),
+                    data: finalGrades,
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1
@@ -323,4 +330,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endif
 @endpush
-@endsection

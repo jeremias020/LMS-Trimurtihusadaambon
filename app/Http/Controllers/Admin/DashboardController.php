@@ -31,66 +31,19 @@ class DashboardController extends Controller
     public function index()
     {
         try {
-            // Simplified stats for dashboard - prevent timeout
-            $stats = [
-                'total_users' => 100, // Mock data to prevent timeout
-                'total_guru' => 15,
-                'total_siswa' => 250,
-                'total_materials' => 45,
-                'total_assignments' => 23,
-                'total_practicals' => 12,
-                'new_users_today' => 3,
-            ];
-
-            // Mock data to prevent complex queries
-            $recentActivities = [
-                ['user' => 'System', 'action' => 'Data berhasil dimuat', 'target' => 'Dashboard Admin', 'time' => '1 menit yang lalu']
-            ];
-
-            $recentUsers = collect([
-                ['name' => 'Admin User', 'email' => 'admin@example.com', 'role' => 'admin', 'registered_at' => '2 hari yang lalu']
-            ]);
-
-            $chartData = [
-                'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-                'datasets' => [
-                    [
-                        'label' => 'Pengguna',
-                        'data' => [10, 15, 12, 18, 20, 25]
-                    ]
-                ]
-            ];
-
-            $userDistribution = [
-                'labels' => ['Admin', 'Guru', 'Siswa'],
-                'data' => [1, 15, 250]
-            ];
-
-            $attendanceData = [
-                'total' => 266,
-                'hadir' => 220,
-                'izin' => 20,
-                'sakit' => 15,
-                'alpha' => 11,
-                'attendance_rate' => 83
-            ];
+            // Get real statistics with error handling
+            $stats = $this->getDashboardStats();
+            $recentActivities = $this->getRecentActivities();
+            $chartData = $this->getChartData();
+            $userDistribution = $this->getUserDistribution();
+            $attendanceData = $this->getAttendanceData();
             
-            $upcomingDeadlines = collect([]);
-            $newMaterialsCount = 5;
-            $pendingAssignmentsCount = 8;
-            $upcomingPracticalsCount = 3;
-
             return view('admin.dashboard', compact(
                 'stats',
-                'recentUsers',
                 'recentActivities',
                 'chartData',
                 'userDistribution',
-                'attendanceData',
-                'upcomingDeadlines',
-                'newMaterialsCount',
-                'pendingAssignmentsCount',
-                'upcomingPracticalsCount'
+                'attendanceData'
             ));
 
         } catch (\Exception $e) {
@@ -116,6 +69,43 @@ class DashboardController extends Controller
                 'attendanceData' => ['total' => 0, 'hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alpha' => 0, 'attendance_rate' => 0],
                 'error' => 'Terjadi kesalahan saat memuat dashboard: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Get dashboard statistics
+     *
+     * @return array
+     */
+    private function getDashboardStats()
+    {
+        try {
+            return [
+                'total_users' => User::count(),
+                'total_guru' => User::where('role', 'guru')->count(),
+                'total_siswa' => User::where('role', 'siswa')->count(),
+                'total_admin' => User::where('role', 'admin')->count(),
+                'total_materials' => Material::count(),
+                'total_assignments' => Assignment::count(),
+                'total_practicals' => Practical::count(),
+                'new_users_today' => User::whereDate('created_at', today())->count(),
+                'active_users' => User::where('status', 'active')->count(),
+                'inactive_users' => User::where('status', 'inactive')->count(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error getting dashboard stats: ' . $e->getMessage());
+            return [
+                'total_users' => 0,
+                'total_guru' => 0,
+                'total_siswa' => 0,
+                'total_admin' => 0,
+                'total_materials' => 0,
+                'total_assignments' => 0,
+                'total_practicals' => 0,
+                'new_users_today' => 0,
+                'active_users' => 0,
+                'inactive_users' => 0,
+            ];
         }
     }
 
@@ -177,46 +167,52 @@ class DashboardController extends Controller
      * @return array
      */
     private function getRecentActivities()
-{
-    $activities = [];
+    {
+        try {
+            $activities = [];
 
-    $recentUsers = User::latest()->take(3)->get();
-    foreach ($recentUsers as $user) {
-        $activities[] = [
-            'user' => 'System',
-            'action' => 'mendaftar user baru',
-            'target' => $user->name . ' (' . $user->email . ')',
-            'time' => $user->created_at->diffForHumans(),
-            'created_at_raw' => $user->created_at,
-            'icon' => 'user-plus',
-            'color' => 'primary'
-        ];
+            // Get recent users
+            $recentUsers = User::latest()->take(3)->get();
+            foreach ($recentUsers as $user) {
+                $activities[] = [
+                    'user' => (object)['name' => 'System'],
+                    'description' => 'User baru terdaftar: ' . $user->name,
+                    'created_at' => $user->created_at
+                ];
+            }
+
+            // Get recent materials if Material model exists
+            try {
+                $recentMaterials = Material::latest()->take(3)->get();
+                foreach ($recentMaterials as $material) {
+                    $activities[] = [
+                        'user' => (object)['name' => 'System'],
+                        'description' => 'Materi baru ditambahkan: ' . $material->title,
+                        'created_at' => $material->created_at
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Skip if Material model has issues
+            }
+
+            // Sort by created_at
+            usort($activities, function($a, $b) {
+                return $b['created_at']->timestamp - $a['created_at']->timestamp;
+            });
+
+            return array_slice($activities, 0, 10);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting recent activities: ' . $e->getMessage());
+            return [
+                [
+                    'user' => (object)['name' => 'System'],
+                    'description' => 'Dashboard berhasil dimuat',
+                    'created_at' => now()
+                ]
+            ];
+        }
     }
-
-    $recentMaterials = Material::with('teacher')->latest()->take(3)->get();
-    foreach ($recentMaterials as $material) {
-        $activities[] = [
-            'user' => optional($material->teacher)->name ?? 'Unknown',
-            'action' => 'mengupload materi',
-            'target' => $material->title,
-            'time' => $material->created_at->diffForHumans(),
-            'created_at_raw' => $material->created_at,
-            'icon' => 'file-upload',
-            'color' => 'success'
-        ];
-    }
-
-    // ... lanjutkan untuk assignment & submission
-
-    usort($activities, function($a, $b) {
-        return $b['created_at_raw']->timestamp - $a['created_at_raw']->timestamp;
-    });
-
-    return array_map(function($item) {
-        unset($item['created_at_raw']);
-        return $item;
-    }, array_slice($activities, 0, 10));
-}
 
     /**
      * Get chart data for dashboard

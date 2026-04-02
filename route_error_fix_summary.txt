@@ -1,0 +1,62 @@
+=== PERBAIKAN ROUTE ERROR ABSENSI GURU ===
+
+🔍 PROBLEM IDENTIFIED:
+- Error: Route [absensi.create] not defined
+- View menggunakan route tanpa prefix 'guru.'
+- Route sebenarnya ada di dalam prefix 'guru'
+- Route names: guru.absensi.index, guru.absensi.create, dll
+
+✅ ROOT CAUSE:
+Route absensi berada di dalam group:
+```php
+Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(function () {
+    Route::resource('absensi', GuruAttendanceController::class)->names([
+        'index' => 'absensi.index',
+        'create' => 'absensi.create', 
+        // ...
+    ]);
+});
+```
+
+Jadi route yang sebenarnya adalah:
+- guru.absensi.index
+- guru.absensi.create
+- guru.absensi.store
+- guru.absensi.edit
+- dll
+
+✅ FIXES APPLIED:
+
+1. INDEX VIEW (guru/absensi/index.blade.php):
+   - route('absensi.create') → route('guru.absensi.create')
+   - route('absensi.edit') → route('guru.absensi.edit')
+
+2. CREATE VIEW (guru/absensi/create.blade.php):
+   - route('absensi.index') → route('guru.absensi.index') (breadcrumb)
+   - route('absensi.index') → route('guru.absensi.index') (page-actions)
+   - route('absensi.store') → route('guru.absensi.store') (form action)
+
+📱 EXPECTED BEHAVIOR:
+1. Tombol "Buat Absensi" berfungsi tanpa error
+2. Tombol "Edit" berfungsi tanpa error
+3. Tombol "Kembali" berfungsi tanpa error
+4. Form submission berfungsi tanpa error
+5. Breadcrumb navigation berfungsi
+
+🔧 TESTING STEPS:
+1. Login sebagai guru
+2. Menu: Absensi → Manajemen Absensi
+3. Test: Klik tombol "Buat Absensi" (harus redirect ke form)
+4. Test: Klik tombol "Edit" (harus redirect ke edit page)
+5. Test: Klik tombol "Kembali" (harus kembali ke index)
+6. Test: Submit form (harus berhasil)
+
+🎉 STATUS: FIXED
+- Route names: Corrected dengan prefix 'guru.'
+- Navigation: Working tanpa error
+- Form submission: Working
+- Breadcrumb: Working
+- All links: Functional
+
+📱 FINAL RESULT:
+Route error sudah diperbaiki dengan menambahkan prefix 'guru.' pada semua route names di view absensi guru. Sekarang semua navigation dan form functionality berfungsi normal.

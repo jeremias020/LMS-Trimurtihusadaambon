@@ -1,23 +1,27 @@
-@extends('layouts.admin')
+@extends('admin.layouts.admin-layout')
 
-@section('title', 'Manajemen Pengguna')
-@section('page-title', 'Manajemen Pengguna')
-
-@section('breadcrumb')
-    <li class="breadcrumb-item active">Manajemen Pengguna</li>
-@endsection
-
-@section('page-actions')
-    <div class="d-flex gap-2">
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Tambah Pengguna
-        </a>
-    </div>
+@section('title')
+    Manajemen Pengguna
 @endsection
 
 @section('content')
-<!-- Alerts -->
-@if(session('success'))
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Manajemen Pengguna</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.users.separated') }}" class="btn btn-info">
+                    <i class="fas fa-table-columns me-2"></i>Tampilan Terpisah
+                </a>
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Tambah Pengguna
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Alerts -->
+        @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     <i class="fas fa-check-circle me-2"></i>
     {{ session('success') }}
@@ -33,29 +37,25 @@
 </div>
 @endif
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm hover-lift">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
-                            <i class="fas fa-users text-primary fs-3"></i>
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                    <i class="fas fa-users text-primary fs-3"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Total Pengguna</div>
+                                <div class="h3 mb-0 fw-bold text-dark">{{ $users->total() ?? 0 }}</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex-grow-1 ms-3">
-                        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Total Pengguna</div>
-                        <div class="h3 mb-0 fw-bold text-dark">{{ $users->total() ?? 0 }}</div>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
@@ -122,7 +122,10 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Data Pengguna</h6>
-        <div class="dropdown no-arrow">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetFiltersBtn">
+                <i class="fas fa-undo me-1"></i> Reset
+            </button>
             <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false">
                 <i class="fas fa-filter me-1"></i> Filter
             </button>
@@ -195,13 +198,14 @@
                         <th>Email/Kontak</th>
                         <th>Role</th>
                         <th>Status</th>
+                        <th>Kelas/Jurusan</th>
                         <th>Bergabung</th>
                         <th width="120">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="usersTableBody">
                     @forelse($users as $user)
-                    <tr class="user-row" data-role="{{ $user->role }}" data-status="{{ $user->status }}">
+                    <tr class="user-row" data-role="{{ $user->role }}" data-status="{{ $user->status }}" data-kelas="{{ $user->kelas?->name ?? '' }}" data-jurusan="{{ $user->jurusan?->nama ?? ($user->kelas?->major ?? '') }}">
                         <td>
                             <div class="form-check">
                                 <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="user-checkbox form-check-input">
@@ -248,6 +252,16 @@
                                 <span class="badge bg-danger">Suspended</span>
                             @else
                                 <span class="badge bg-light text-dark">{{ ucfirst($user->status) }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($user->role === 'siswa')
+                                <div class="small">
+                                    <div class="fw-semibold">{{ $user->kelas?->name ?? '-' }}</div>
+                                    <div class="text-muted">{{ $user->jurusan?->nama ?? ($user->kelas?->major ?? '-') }}</div>
+                                </div>
+                            @else
+                                <span class="text-muted">-</span>
                             @endif
                         </td>
                         <td>
@@ -302,6 +316,9 @@
         @endif
     </div>
 </div>
+
+</div>
+@endsection
 
 @push('styles')
 <style>
@@ -371,26 +388,24 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
-    if ($.fn.DataTable) {
-        $('#usersTable').DataTable({
-            "order": [[ 5, "desc" ]], // Sort by created date
-            "pageLength": 25,
-            "responsive": true,
-            "columnDefs": [
-                { "orderable": false, "targets": [0, 6] }, // Disable sorting for checkbox and actions
-                { "searchable": false, "targets": [0, 6] }
-            ],
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/id.json"
-            }
-        });
-    }
+    // Initialize DataTable - Simplified version without external dependencies
+    // if ($.fn.DataTable) {
+    //     $('#usersTable').DataTable({
+    //         "order": [[ 5, "desc" ]],
+    //         "pageLength": 25,
+    //         "responsive": true,
+    //         "columnDefs": [
+    //             { "orderable": false, "targets": [0, 6] },
+    //             { "searchable": false, "targets": [0, 6] }
+    //         ]
+    //     });
+    // }
     
     // Search functionality
     const searchInput = document.getElementById('searchInput');
     const roleFilter = document.getElementById('roleFilter');
     const statusFilter = document.getElementById('statusFilter');
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
     const userRows = document.querySelectorAll('.user-row');
     
     function filterUsers() {
@@ -403,10 +418,12 @@ $(document).ready(function() {
         userRows.forEach(row => {
             const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
             const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const kelas = (row.getAttribute('data-kelas') || '').toLowerCase();
+            const jurusan = (row.getAttribute('data-jurusan') || '').toLowerCase();
             const role = row.getAttribute('data-role');
             const status = row.getAttribute('data-status');
             
-            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm) || kelas.includes(searchTerm) || jurusan.includes(searchTerm);
             const matchesRole = !roleValue || role === roleValue;
             const matchesStatus = !statusValue || status === statusValue;
             
@@ -429,6 +446,12 @@ $(document).ready(function() {
     if (searchInput) searchInput.addEventListener('input', filterUsers);
     if (roleFilter) roleFilter.addEventListener('change', filterUsers);
     if (statusFilter) statusFilter.addEventListener('change', filterUsers);
+    if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', function() {
+        if (searchInput) searchInput.value = '';
+        if (roleFilter) roleFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        filterUsers();
+    });
     
     // Bulk actions functionality
     const selectAll = document.getElementById('selectAll');
@@ -558,4 +581,3 @@ $(document).ready(function() {
 });
 </script>
 @endpush
-@endsection

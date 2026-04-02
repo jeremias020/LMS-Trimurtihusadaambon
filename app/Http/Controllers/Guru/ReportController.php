@@ -47,7 +47,7 @@ class ReportController extends Controller
             'total_assignments' => Assignment::where('guru_id', $guruId)->count(),
             'total_practicals' => Practical::where('guru_id', $guruId)->count(),
             'total_attendance' => Attendance::where('recorded_by', $guruId)
-                ->whereBetween('tanggal', [$startDate, $endDate])
+                ->whereBetween('date', [$startDate, $endDate])
                 ->count(),
 
             'graded_assignments' => AssignmentSubmission::whereHas('assignment', function($query) use ($guruId) {
@@ -111,7 +111,7 @@ class ReportController extends Controller
                 ->count();
 
             $monthlyData['attendance'][] = Attendance::where('recorded_by', $guruId)
-                ->whereBetween('tanggal', [
+                ->whereBetween('date', [
                     $monthStart->format('Y-m-d'),
                     $monthEnd->format('Y-m-d')
                 ])->count();
@@ -147,7 +147,7 @@ class ReportController extends Controller
                 $query->with(['siswa', 'criteria']);
             }])
             ->where('guru_id', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
 
             if ($filters['kelas']) {
                 $query->where('kelas_id', $filters['kelas']);
@@ -162,7 +162,7 @@ class ReportController extends Controller
         $practicalStats = [
             'total_siswa' => PracticalScore::whereHas('practical', function($query) use ($guruId, $filters) {
                 $query->where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
                 if ($filters['kelas']) {
                     $query->where('kelas_id', $filters['kelas']);
                 }
@@ -170,7 +170,7 @@ class ReportController extends Controller
 
             'average_score' => PracticalScore::whereHas('practical', function($query) use ($guruId, $filters) {
                 $query->where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
                 if ($filters['kelas']) {
                     $query->where('kelas_id', $filters['kelas']);
                 }
@@ -178,7 +178,7 @@ class ReportController extends Controller
 
             'total_graded' => PracticalScore::whereHas('practical', function($query) use ($guruId, $filters) {
                 $query->where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
                 if ($filters['kelas']) {
                     $query->where('kelas_id', $filters['kelas']);
                 }
@@ -222,10 +222,10 @@ class ReportController extends Controller
 
         $query = Attendance::with('siswa')
             ->where('recorded_by', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
 
             if ($filters['kelas']) {
-                $query->whereHas('user', function($q) use ($filters) {
+                $query->whereHas('siswa', function($q) use ($filters) {
                     $q->where('kelas_id', $filters['kelas']);
                 });
             }
@@ -234,11 +234,11 @@ class ReportController extends Controller
             $query->where('status', $filters['status']);
         }
 
-        $attendance = $query->orderBy('tanggal', 'desc')->paginate(20);
+        $attendance = $query->orderBy('date', 'desc')->paginate(20);
 
         $attendanceStats = Attendance::selectRaw('status, COUNT(*) as count')
             ->where('recorded_by', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']])
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']])
             ->when($filters['kelas'], function($query) use ($filters) {
                 return $query->whereHas('siswa', function($q) use ($filters) {
                     $q->where('kelas_id', $filters['kelas']);
@@ -286,7 +286,7 @@ class ReportController extends Controller
         $attendanceSummary = collect();
         foreach($subjects as $subject) {
             $subjectAttendance = Attendance::where('recorded_by', $guruId)
-                ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']])
+                ->whereBetween('date', [$filters['start_date'], $filters['end_date']])
                 ->when($filters['kelas'], function($query) use ($filters) {
                     return $query->whereHas('siswa', function($q) use ($filters) {
                         $q->where('kelas_id', $filters['kelas']);
@@ -297,7 +297,7 @@ class ReportController extends Controller
             $summary = (object)[
                 'subject_name' => $subject->name,
                 'class' => $filters['kelas'] ? $classes[$filters['kelas']] ?? '-' : 'All Classes',
-                'total_sessions' => $subjectAttendance->groupBy('tanggal')->count(),
+                'total_sessions' => $subjectAttendance->groupBy('date')->count(),
                 'present_count' => $subjectAttendance->where('status', 'hadir')->count(),
                 'late_count' => $subjectAttendance->where('status', 'terlambat')->count(),
                 'absent_count' => $subjectAttendance->where('status', 'alpha')->count(),
@@ -315,7 +315,7 @@ class ReportController extends Controller
             })
             ->with(['attendances' => function($query) use ($guruId, $filters) {
                 $query->where('recorded_by', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
             }]);
             
         $students = $studentsQuery->paginate(20);
@@ -586,19 +586,19 @@ class ReportController extends Controller
     {
         $attendance = Attendance::with('siswa')
             ->where('recorded_by', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']])
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']])
             ->when($filters['kelas'], function($query) use ($filters) {
                 return $query->whereHas('siswa', function($q) use ($filters) {
                     $q->where('kelas_id', $filters['kelas']);
                 });
             })
-            ->orderBy('tanggal', 'desc')
+            ->orderBy('date', 'desc')
             ->limit(1000)
             ->get();
 
         $stats = Attendance::selectRaw('status, COUNT(*) as count')
             ->where('recorded_by', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']])
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']])
             ->when($filters['kelas'], function($query) use ($filters) {
                 return $query->whereHas('siswa', function($q) use ($filters) {
                     $q->where('kelas_id', $filters['kelas']);
@@ -615,7 +615,7 @@ class ReportController extends Controller
     {
         $practicals = Practical::with(['scores.siswa', 'scores.criteria'])
             ->where('guru_id', $guruId)
-            ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']])
+            ->whereBetween('date', [$filters['start_date'], $filters['end_date']])
             ->when($filters['kelas'], function($query) use ($filters) {
                 return $query->where('kelas_id', $filters['kelas']);
             })
@@ -627,14 +627,14 @@ class ReportController extends Controller
             'total_practicals' => $practicals->count(),
             'total_scores' => PracticalScore::whereHas('practical', function($query) use ($guruId, $filters) {
                 $query->where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
                 if ($filters['kelas']) {
                     $query->where('kelas_id', $filters['kelas']);
                 }
             })->count(),
             'average_score' => PracticalScore::whereHas('practical', function($query) use ($guruId, $filters) {
                 $query->where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$filters['start_date'], $filters['end_date']]);
+                    ->whereBetween('date', [$filters['start_date'], $filters['end_date']]);
             if ($filters['kelas']) {
                 $query->where('kelas_id', $filters['kelas']);
             }

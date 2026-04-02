@@ -1,454 +1,510 @@
 @extends('layouts.guru')
 
-@section('title', 'Daftar Penilaian - SMK Kesehatan Trimurti Husada')
+@section('title', 'Daftar Penilaian')
 
-@section('page-title', 'Penilaian Siswa')
-@section('page-subtitle', 'Kelola penilaian tugas dan praktikum siswa')
-
-@section('breadcrumb')
-<li class="breadcrumb-item active" aria-current="page">Penilaian</li>
-@endsection
-
-@section('page-actions')
-<a href="{{ route('guru.penilaian.create') }}" class="btn btn-primary">
-    <i class="fas fa-plus me-2"></i>Buat Penilaian Manual
-</a>
-@endsection
+@php
+// Helper function to get assessment score
+function getAssessmentScore($assessment) {
+    if (isset($assessment->score) && $assessment->score !== null) {
+        return (float) $assessment->score;
+    }
+    if (isset($assessment->total_nilai) && $assessment->total_nilai !== null) {
+        return (float) $assessment->total_nilai;
+    }
+    return null;
+}
+@endphp
 
 @section('content')
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card stats-card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded">
-                            <i class="fas fa-clipboard-list text-primary fs-4"></i>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Daftar Penilaian</h1>
+        <div class="text-muted">
+            Kelola penilaian tugas dan praktikum siswa
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Penilaian
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $allAssessments->count() }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Total Penilaian</h6>
-                        <h3 class="mb-0">{{ $assessments->count() }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Sudah Dinilai
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $allAssessments->where(function($assessment) { return getAssessmentScore($assessment) !== null; })->count() }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Belum Dinilai
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $allAssessments->where(function($assessment) { return getAssessmentScore($assessment) === null; })->count() }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Rata-rata Nilai
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ number_format($allAssessments->where(function($assessment) { return getAssessmentScore($assessment) !== null; })->avg(function($assessment) { return getAssessmentScore($assessment); }), 1) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card stats-card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 p-3 rounded">
-                            <i class="fas fa-clock text-warning fs-4"></i>
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Aksi Cepat</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ route('guru.penilaian.create') }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-plus mr-2"></i>Penilaian Manual
+                            </a>
                         </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Belum Dinilai</h6>
-                        <h3 class="mb-0">{{ $assessments->where('score', null)->count() }}</h3>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ route('guru.penilaian.auto') }}" class="btn btn-success btn-block">
+                                <i class="fas fa-magic mr-2"></i>Penilaian Otomatis
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ route('guru.penilaian.auto.criteria') }}" class="btn btn-info btn-block">
+                                <i class="fas fa-list-check mr-2"></i>Penilaian SOP
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card stats-card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 p-3 rounded">
-                            <i class="fas fa-check-circle text-success fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Sudah Dinilai</h6>
-                        <h3 class="mb-0">{{ $assessments->whereNotNull('score')->count() }}</h3>
-                    </div>
+    <!-- Assessments Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Penilaian</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="#" onclick="exportData('excel')">
+                        <i class="fas fa-file-excel mr-2"></i>Export Excel
+                    </a>
+                    <a class="dropdown-item" href="#" onclick="exportData('pdf')">
+                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="refreshData()">
+                        <i class="fas fa-sync mr-2"></i>Refresh
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card stats-card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <div class="bg-info bg-opacity-10 p-3 rounded">
-                            <i class="fas fa-star text-info fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="text-muted mb-1">Rata-rata Nilai</h6>
-                        <h3 class="mb-0">{{ number_format($assessments->whereNotNull('score')->avg('score'), 1) }}</h3>
-                    </div>
+        <div class="card-body">
+            @if($allAssessments->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="assessmentsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tipe</th>
+                                <th>Siswa</th>
+                                <th>Kelas</th>
+                                <th>Mata Pelajaran</th>
+                                <th>Judul</th>
+                                <th>Status</th>
+                                <th>Nilai</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($allAssessments as $index => $assessment)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>
+                                        @if($assessment->assignment_id)
+                                            <span class="badge badge-primary">Tugas</span>
+                                        @else
+                                            <span class="badge badge-success">Praktikum</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="mr-2">
+                                                @if($assessment->siswa && $assessment->siswa->avatar)
+                                                    <img src="{{ asset('storage/' . $assessment->siswa->avatar) }}" 
+                                                         class="rounded-circle" width="32" height="32" alt="Avatar">
+                                                @else
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                         style="width: 32px; height: 32px; font-size: 12px;">
+                                                        {{ substr($assessment->siswa->name ?? 'Siswa', 0, 2) }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold">{{ $assessment->siswa->name ?? 'Siswa Tidak Diketahui' }}</div>
+                                                <div class="text-muted small">{{ $assessment->siswa->email ?? '-' }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ $assessment->siswa->kelas->name ?? 'Belum ada kelas' }}
+                                    </td>
+                                    <td>
+                                        @if($assessment->assignment_id && $assessment->assignment)
+                                            {{ $assessment->assignment->subject->name ?? 'Tidak ada mata pelajaran' }}
+                                        @elseif($assessment->practical_id && $assessment->practical)
+                                            {{ $assessment->practical->subject->name ?? 'Tidak ada mata pelajaran' }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($assessment->assignment_id && $assessment->assignment)
+                                            {{ $assessment->assignment->title }}
+                                        @elseif($assessment->practical_id && $assessment->practical)
+                                            {{ $assessment->practical->judul }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $score = getAssessmentScore($assessment);
+                                        @endphp
+                                        @if($score !== null)
+                                            <span class="badge badge-success">Sudah Dinilai</span>
+                                        @else
+                                            <span class="badge badge-warning">Belum Dinilai</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($score !== null)
+                                            <span class="font-weight-bold {{ $score >= 80 ? 'text-success' : ($score >= 60 ? 'text-warning' : 'text-danger') }}">
+                                                {{ $score }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($assessment->assignment_id && $assessment->assignment)
+                                            {{ $assessment->assignment->due_date ? $assessment->assignment->due_date->format('d M Y H:i') : '-' }}
+                                        @elseif($assessment->practical_id && $assessment->practical)
+                                            {{ $assessment->practical->date ? $assessment->practical->date->format('d M Y') : '-' }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            @if($assessment->assignment_id)
+                                                <a href="{{ route('guru.penilaian.edit', $assessment->id) }}" 
+                                                   class="btn btn-primary btn-sm" title="Edit Penilaian">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{{ route('guru.assignments.submissions', $assessment->assignment_id) }}" 
+                                                   class="btn btn-info btn-sm" title="Lihat Submission">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('guru.penilaian.edit', $assessment->id) }}" 
+                                                   class="btn btn-primary btn-sm" title="Edit Penilaian">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{{ route('guru.practicals.show', $assessment->practical_id) }}" 
+                                                   class="btn btn-info btn-sm" title="Lihat Praktikum">
+                                                    <i class="fas fa-flask"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            @else
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-clipboard-list fa-4x text-gray-300"></i>
+                    </div>
+                    <h5 class="text-gray-400 mb-3">Belum Ada Penilaian</h5>
+                    <p class="text-gray-500 mb-4">
+                        Belum ada penilaian yang tersedia. Mulai dengan membuat penilaian baru.
+                    </p>
+                    <a href="{{ route('guru.penilaian.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>Buat Penilaian Baru
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
 </div>
 
-<!-- Filter Section -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 py-3">
-        <h5 class="mb-0 fw-bold">Filter Penilaian</h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <label for="subject_filter" class="form-label">Mata Pelajaran</label>
-                <select id="subject_filter" class="form-select">
-                    <option value="">Semua Mata Pelajaran</option>
-                    @foreach($subjects as $subject)
-                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <label for="class_filter" class="form-label">Kelas</label>
-                <select id="class_filter" class="form-select">
-                    <option value="">Semua Kelas</option>
-                    @php
-                        $classes = $assessments->pluck('class')->unique()->sort()->values();
-                    @endphp
-                    @foreach($classes as $class)
-                        @if($class)
-                        <option value="{{ $class }}">{{ $class }}</option>
-                        @endif
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <label for="status_filter" class="form-label">Status Penilaian</label>
-                <select id="status_filter" class="form-select">
-                    <option value="">Semua Status</option>
-                    <option value="graded">Sudah Dinilai</option>
-                    <option value="ungraded">Belum Dinilai</option>
-                </select>
-            </div>
-
-            <div class="col-md-3 mb-3 d-flex align-items-end">
-                <button id="reset_filters" class="btn btn-outline-secondary w-100">
-                    <i class="fas fa-undo me-2"></i>Reset Filter
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Tabs -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0 py-3">
-        <ul class="nav nav-tabs card-header-tabs" id="penilaianTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" data-tab="all">
-                    <i class="fas fa-list me-2"></i>Semua Penilaian
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab" data-tab="assignments">
-                    <i class="fas fa-tasks me-2"></i>Tugas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="practicals-tab" data-bs-toggle="tab" data-bs-target="#practicals" type="button" role="tab" data-tab="practicals">
-                    <i class="fas fa-flask me-2"></i>Praktikum
-                </button>
-            </li>
-        </ul>
-    </div>
-
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" id="assessmentTable">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 50px">#</th>
-                        <th>Siswa</th>
-                        <th>Kelas</th>
-                        <th>Mata Pelajaran</th>
-                        <th>Jenis</th>
-                        <th>Judul Aktivitas</th>
-                        <th>Nilai</th>
-                        <th>Status</th>
-                        <th>Tanggal</th>
-                        <th style="width: 120px">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="assessmentTableBody">
-                    @forelse($assessments as $index => $assessment)
-                    <tr class="assessment-row"
-                        data-type="{{ $assessment->type }}"
-                        data-subject="{{ $assessment->subject_id }}"
-                        data-class="{{ $assessment->class }}"
-                        data-status="{{ $assessment->score !== null ? 'graded' : 'ungraded' }}">
-                        <td>{{ $index + 1 }}</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2">
-                                    <span class="text-primary fw-bold">{{ substr($assessment->student->name ?? 'N/A', 0, 1) }}</span>
-                                </div>
-                                <div>
-                                    <div class="fw-medium">{{ $assessment->student->name ?? 'Tidak tersedia' }}</div>
-                                    <small class="text-muted">NIS: {{ $assessment->student->nis ?? '-' }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark">{{ $assessment->class }}</span>
-                        </td>
-                        <td>{{ $assessment->subject->name ?? 'Tidak tersedia' }}</td>
-                        <td>
-                            @if($assessment->type === 'assignment')
-                                <span class="badge bg-info">Tugas</span>
-                            @else
-                                <span class="badge bg-success">Praktikum</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="fw-medium">
-                                @if($assessment->type === 'assignment')
-                                    {{ $assessment->activity->title ?? 'Tanpa judul' }}
-                                @else
-                                    {{ $assessment->activity->judul ?? 'Tanpa judul' }}
-                                @endif
-                            </div>
-                        </td>
-                        <td>
-                            @if($assessment->score !== null)
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold text-primary me-1">{{ number_format($assessment->score, 1) }}</span>
-                                    <small class="text-muted">/ {{ $assessment->max_score }}</small>
-                                </div>
-                                <div class="progress mt-1" style="height: 4px;">
-                                    <div class="progress-bar" style="width: {{ ($assessment->score / $assessment->max_score) * 100 }}%"></div>
-                                </div>
-                            @else
-                                <span class="text-muted fst-italic">Belum dinilai</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($assessment->score !== null)
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check me-1"></i>Dinilai
-                                </span>
-                            @else
-                                <span class="badge bg-warning">
-                                    <i class="fas fa-clock me-1"></i>Pending
-                                </span>
-                            @endif
-                        </td>
-                        <td>
-                            <small class="text-muted">{{ $assessment->assessment_date ? $assessment->assessment_date->format('d M Y') : '-' }}</small>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ route('guru.penilaian.edit', $assessment->id) }}" 
-                                   class="btn btn-outline-primary" 
-                                   data-bs-toggle="tooltip" 
-                                   title="Edit Penilaian">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('guru.penilaian.destroy', $assessment->id) }}" 
-                                      method="POST" 
-                                      class="d-inline" 
-                                      onsubmit="return confirm('Yakin ingin menghapus penilaian ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            class="btn btn-outline-danger" 
-                                            data-bs-toggle="tooltip" 
-                                            title="Hapus Penilaian">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="text-center py-5">
-                            <div class="empty-state">
-                                <div class="empty-state-icon mb-3">
-                                    <i class="fas fa-clipboard-list text-muted" style="font-size: 4rem;"></i>
-                                </div>
-                                <h5 class="text-muted mb-3">Belum Ada Penilaian</h5>
-                                <p class="text-muted mb-4">Belum ada data penilaian yang tersedia. Mulai buat penilaian untuk siswa Anda.</p>
-                                <a href="{{ route('guru.penilaian.create') }}" class="btn btn-primary">
-                                    <i class="fas fa-plus me-2"></i>Buat Penilaian Baru
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-@push('css')
+<!-- Custom Styles -->
 <style>
-.avatar-sm {
-    width: 2rem;
-    height: 2rem;
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
 }
 
-.stats-card:hover {
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.text-primary {
+    color: #4e73df !important;
+}
+
+.text-success {
+    color: #1cc88a !important;
+}
+
+.text-info {
+    color: #36b9cc !important;
+}
+
+.text-warning {
+    color: #f6c23e !important;
+}
+
+.text-danger {
+    color: #e74a3b !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.text-gray-400 {
+    color: #b7b7b7 !important;
+}
+
+.text-gray-500 {
+    color: #858796 !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.badge-primary {
+    background-color: #4e73df;
+}
+
+.badge-success {
+    background-color: #1cc88a;
+}
+
+.badge-warning {
+    background-color: #f6c23e;
+}
+
+.badge-info {
+    background-color: #36b9cc;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+.btn-success {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+}
+
+.btn-success:hover {
+    background-color: #17a673;
+    border-color: #149b5f;
+}
+
+.btn-info {
+    background-color: #36b9cc;
+    border-color: #36b9cc;
+}
+
+.btn-info:hover {
+    background-color: #2c9faf;
+    border-color: #2589b5;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
     transform: translateY(-2px);
-    transition: all 0.3s ease;
 }
 
-.progress {
-    background-color: #e9ecef;
+.table th {
+    background-color: #f8f9fc;
+    border-top: 1px solid #dee2e6;
 }
 
-.progress-bar {
-    background: linear-gradient(45deg, var(--bs-primary), #0d6efd);
-}
-
-.empty-state {
-    padding: 3rem 2rem;
-}
-
-.btn-group-sm .btn {
+.btn-group-sm > .btn, .btn-sm {
     padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
 }
 
-@media (max-width: 768px) {
-    .stats-card {
-        margin-bottom: 1rem;
-    }
-    
-    .table-responsive {
-        font-size: 0.875rem;
-    }
+.rounded-circle {
+    border-radius: 50%;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.font-weight-bold {
+    font-weight: 700;
+}
+
+.font-weight-bold {
+    font-weight: 700;
+}
+
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-muted {
+    color: #858796;
+}
+
+.small {
+    font-size: 0.875rem;
 }
 </style>
-@endpush
 
-@push('js')
+<!-- JavaScript -->
 <script>
+function getAssessmentScore(assessment) {
+    if (assessment.score !== null && assessment.score !== undefined) {
+        return assessment.score;
+    }
+    if (assessment.total_nilai !== null && assessment.total_nilai !== undefined) {
+        return assessment.total_nilai;
+    }
+    return null;
+}
+
+function exportData(format) {
+    const url = `{{ route('guru.penilaian.export') }}?format=${format}`;
+    window.open(url, '_blank');
+}
+
+function refreshData() {
+    location.reload();
+}
+
+// Initialize DataTables
 $(document).ready(function() {
-    // Initialize tooltips
-    $('[data-bs-toggle="tooltip"]').tooltip();
-    
-    // Get elements
-    const tabButtons = document.querySelectorAll('[data-tab]');
-    const rows = document.querySelectorAll('.assessment-row');
-    const subjectFilter = document.getElementById('subject_filter');
-    const classFilter = document.getElementById('class_filter');
-    const statusFilter = document.getElementById('status_filter');
-    const resetButton = document.getElementById('reset_filters');
-
-    function filterTable() {
-        const activeTab = document.querySelector('[data-tab].active')?.dataset.tab || 'all';
-        const subjectValue = subjectFilter.value;
-        const classValue = classFilter.value;
-        const statusValue = statusFilter.value;
-        
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const type = row.dataset.type;
-            const subject = row.dataset.subject;
-            const klass = row.dataset.class;
-            const status = row.dataset.status;
-
-            let show = true;
-
-            // Filter by tab
-            if (activeTab !== 'all') {
-                if (activeTab === 'assignments' && type !== 'assignment') show = false;
-                if (activeTab === 'practicals' && type !== 'practical') show = false;
+    $('#assessmentsTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        order: [[0, 'asc']],
+        language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Selanjutnya",
+                previous: "Sebelumnya"
             }
-
-            // Filter by subject
-            if (subjectValue && subjectValue !== subject) show = false;
-
-            // Filter by class
-            if (classValue && classValue !== klass) show = false;
-
-            // Filter by status
-            if (statusValue && statusValue !== status) show = false;
-
-            if (show) {
-                row.style.display = '';
-                visibleCount++;
-                // Update row number
-                row.querySelector('td:first-child').textContent = visibleCount;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        // Show/hide empty state
-        const emptyRow = document.querySelector('tbody tr td[colspan]')?.closest('tr');
-        if (emptyRow) {
-            emptyRow.style.display = visibleCount === 0 && rows.length === 1 ? '' : 'none';
-        }
-    }
-
-    // Tab click event using Bootstrap tabs
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active from all tabs
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            // Add active to clicked tab
-            this.classList.add('active');
-            // Filter table
-            setTimeout(filterTable, 100);
-        });
-    });
-
-    // Filter change events
-    if (subjectFilter) subjectFilter.addEventListener('change', filterTable);
-    if (classFilter) classFilter.addEventListener('change', filterTable);
-    if (statusFilter) statusFilter.addEventListener('change', filterTable);
-
-    // Reset filters
-    if (resetButton) {
-        resetButton.addEventListener('click', function() {
-            if (subjectFilter) subjectFilter.value = '';
-            if (classFilter) classFilter.value = '';
-            if (statusFilter) statusFilter.value = '';
-            
-            // Reset active tab
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            const allTab = document.querySelector('[data-tab="all"]');
-            if (allTab) allTab.classList.add('active');
-            
-            filterTable();
-        });
-    }
-
-    // Initialize first tab as active
-    const firstTab = document.querySelector('[data-tab="all"]');
-    if (firstTab && !document.querySelector('[data-tab].active')) {
-        firstTab.classList.add('active');
-    }
-    
-    // Initial filter
-    filterTable();
-    
-    // Auto-refresh every 5 minutes to check for new assessments
-    setTimeout(function() {
-        location.reload();
-    }, 300000);
-    
-    // Highlight rows that need attention
-    $('.assessment-row').each(function() {
-        const status = $(this).data('status');
-        if (status === 'ungraded') {
-            $(this).addClass('table-warning bg-opacity-25');
         }
     });
 });
 </script>
-@endpush
 @endsection

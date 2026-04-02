@@ -93,11 +93,11 @@ class ProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'nis' => 'required|string|unique:students,nis,' . $student->id,
-            'jenis_kelamin' => 'required|in:L,P',
-            'tanggal_lahir' => 'required|date',
+            'nisn' => 'required|string|unique:siswa,nisn,' . $student->id,
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'tanggal_lahir' => 'nullable|date',
             'alamat' => 'nullable|string|max:500',
-            'no_telepon' => 'nullable|string|max:15',
+            'no_hp' => 'nullable|string|max:15',
             'nama_ortu' => 'nullable|string|max:255',
             'no_telepon_ortu' => 'nullable|string|max:15',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -126,31 +126,51 @@ class ProfileController extends Controller
                 $userData['password'] = Hash::make($request->password);
             }
 
+            $user->update($userData);
+
+            // Handle foto upload for student profile
+            $studentData = [
+                'nisn' => $request->nisn,
+            ];
+
             if ($request->hasFile('foto')) {
-                if ($user->photo) {
-                    Storage::disk('public')->delete($user->photo);
+                // Delete old photo if exists
+                if ($student->foto) {
+                    Storage::disk('public')->delete($student->foto);
                 }
 
                 $foto = $request->file('foto');
                 $filename = time() . '_' . $foto->getClientOriginalName();
-                $path = $foto->storeAs('profile_photos', $filename, 'public');
-                $userData['photo'] = 'profile_photos/' . $filename;
+                $path = $foto->storeAs('student_photos', $filename, 'public');
+                $studentData['foto'] = 'student_photos/' . $filename;
             }
 
-            $user->update($userData); // ✅ IDE sekarang mengenali method ini
+            // Only add fields if they are provided
+            if ($request->filled('jenis_kelamin')) {
+                $studentData['jenis_kelamin'] = $request->jenis_kelamin;
+            }
+            
+            if ($request->filled('tanggal_lahir')) {
+                $studentData['tanggal_lahir'] = $request->date_lahir;
+            }
+            
+            if ($request->filled('alamat')) {
+                $studentData['alamat'] = $request->alamat;
+            }
+            
+            if ($request->filled('no_hp')) {
+                $studentData['no_telepon'] = $request->no_hp;
+            }
+            
+            if ($request->filled('nama_ortu')) {
+                $studentData['nama_ortu'] = $request->nama_ortu;
+            }
+            
+            if ($request->filled('no_telepon_ortu')) {
+                $studentData['no_telepon_ortu'] = $request->no_telepon_ortu;
+            }
 
-            $studentData = [
-                'nis' => $request->nis,
-                'name' => $request->name,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'alamat' => $request->alamat,
-                'no_telepon' => $request->no_telepon,
-                'nama_ortu' => $request->nama_ortu,
-                'no_telepon_ortu' => $request->no_telepon_ortu,
-            ];
-
-            $student->update($studentData); // ✅ Dan ini juga
+            $student->update($studentData);
 
             Log::info('Student profile updated', [
                 'user_id' => $user->id,
@@ -158,7 +178,7 @@ class ProfileController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            return redirect()->route('siswa.profile.index')
+            return redirect()->route('siswa.profile.edit')
                 ->with('success', 'Profil berhasil diperbarui!');
 
         } catch (\Exception $e) {

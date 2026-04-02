@@ -15,7 +15,7 @@ class Practical extends Model
         'subject_id',
         'judul',
         'deskripsi',
-        'tanggal',
+        'date',
         'waktu_mulai',
         'waktu_selesai',
         'lokasi',
@@ -31,7 +31,7 @@ class Practical extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'date' => 'date',
         'is_published' => 'boolean',
         'durasi' => 'integer',
         'max_score' => 'integer',
@@ -80,12 +80,12 @@ class Practical extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('tanggal', '>=', now());
+        return $query->where('date', '>=', now());
     }
 
     public function scopePast($query)
     {
-        return $query->where('tanggal', '<', now());
+        return $query->where('date', '<', now());
     }
 
     public function scopeByGuru($query, $guruId)
@@ -95,11 +95,11 @@ class Practical extends Model
 
     public function getStatusAttribute()
     {
-        if (!$this->tanggal) {
+        if (!$this->date) {
             return 'draft';
         }
 
-        $praktikumDate = \Carbon\Carbon::parse($this->tanggal);
+        $praktikumDate = \Carbon\Carbon::parse($this->date);
         
         if ($praktikumDate->isPast()) {
             return 'completed';
@@ -121,11 +121,11 @@ class Practical extends Model
     // Methods
     public function canBeScored()
     {
-        if (!$this->tanggal) {
+        if (!$this->date) {
             return false;
         }
         
-        $praktikumDate = \Carbon\Carbon::parse($this->tanggal);
+        $praktikumDate = \Carbon\Carbon::parse($this->date);
         return $praktikumDate->isPast();
     }
 

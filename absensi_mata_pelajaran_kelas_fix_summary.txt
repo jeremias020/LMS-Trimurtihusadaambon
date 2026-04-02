@@ -1,0 +1,91 @@
+=== PENYESUAIAN OPSI MATA PELAJARAN DAN KELAS DI ABSENSI ===
+
+🔍 PROBLEM IDENTIFIED:
+- Opsi mata pelajaran di absensi tidak relevan
+- Data mata pelajaran kosong atau tidak lengkap
+- Kelas filter tidak menampilkan data yang tepat
+- Mata pelajaran tidak sesuai dengan jurusan
+
+✅ FIXES APPLIED:
+
+1. MATA PELAJARAN SEEDER:
+   - Created SubjectSeederNew.php
+   - 59 mata pelajaran dibuat total:
+     * Keperawatan: 9 mata pelajaran
+     * Farmasi: 8 mata pelajaran  
+     * Teknologi Laboratorium Medik: 8 mata pelajaran
+     * Gizi: 8 mata pelajaran
+     * Rekam Medis: 9 mata pelajaran
+     * Fisioterapi: 9 mata pelajaran
+     * Mata Pelajaran Umum: 8 mata pelajaran
+
+2. JURUSAN-BASED SUBJECTS:
+   - Setiap jurusan memiliki mata pelajaran spesifik
+   - Kode mata pelajaran: JURUSAN-KODE (KPR-01, FAR-01, dll)
+   - Deskripsi lengkap untuk setiap mata pelajaran
+   - Status: aktif (is_active = true)
+
+3. CONTROLLER IMPROVEMENTS:
+   - Guru\AttendanceController index method:
+     * Subjects diurutkan berdasarkan nama
+     * Filter mata pelajaran yang aktif saja
+   - Guru\AttendanceController create method:
+     * Subjects diurutkan berdasarkan nama
+     * Filter mata pelajaran yang aktif saja
+
+4. COMPLETE SUBJECT LIST:
+   MATA PELAJARAN JURUSAN:
+   KEPERAWATAN:
+   - Anatomi Fisiologi, Patologi, Farmakologi
+   - Keperawatan Dasar, Keperawatan Medikal Bedah
+   - Keperawatan Anak, Keperawatan Maternitas
+   - Keperawatan Jiwa, Keperawatan Komunitas
+
+   FARMASI:
+   - Kimia Farmasi, Farmakologi, Farmasetika
+   - Farmakognosi, Farmasi Klinik, Managemen Farmasi
+   - Kimia Analisis, Biologi Farmasi
+
+   MATA PELAJARAN UMUM:
+   - Pendidikan Agama, PKN, Bahasa Indonesia
+   - Bahasa Inggris, Matematika, Olahraga
+   - Seni Budaya, TIK
+
+📱 EXPECTED BEHAVIOR:
+1. Dropdown mata pelajaran menampilkan 59 opsi lengkap
+2. Mata pelajaran diurutkan berdasarkan nama
+3. Filter mata pelajaran berfungsi dengan benar
+4. Dropdown kelas menampilkan kelas yang aktif
+5. Filter kelas berfungsi dengan benar
+6. Create absensi dengan mata pelajaran yang tepat
+
+🔧 TESTING STEPS:
+1. Login sebagai guru
+2. Menu: Absensi → Manajemen Absensi
+3. Test: Dropdown mata pelajaran (59 opsi)
+4. Test: Filter mata pelajaran
+5. Test: Dropdown kelas
+6. Test: Filter kelas
+7. Test: Buat absensi baru
+
+🎉 STATUS: FIXED
+- Mata pelajaran data: 59 records created
+- Jurusan-based subjects: Implemented
+- Controller: Updated dengan proper ordering
+- Filter functionality: Enhanced
+- Dropdown options: Complete
+
+📊 DATA STATUS:
+- Total mata pelajaran: 59
+- Mata pelajaran jurusan: 51
+- Mata pelajaran umum: 8
+- Status mata pelajaran: Semua aktif
+- Ready for testing: Yes
+
+📱 FINAL RESULT:
+Opsi mata pelajaran dan kelas di absensi sudah disesuaikan dengan:
+- 59 mata pelajaran lengkap (jurusan + umum)
+- Proper ordering berdasarkan nama
+- Active subjects filter
+- Enhanced dropdown functionality
+- Better user experience

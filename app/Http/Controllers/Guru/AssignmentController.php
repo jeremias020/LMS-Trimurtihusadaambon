@@ -30,7 +30,7 @@ class AssignmentController extends Controller
         $tab = $request->get('tab', 'active'); // Default ke tab 'active'
         
         // Base query
-        $query = Assignment::with(['subject', 'submissions' => function($query) {
+        $query = Assignment::with(['submissions' => function($query) {
             $query->select('assignment_id', 'score', 'submitted_at')
                   ->whereNotNull('score');
         }])
@@ -50,8 +50,8 @@ class AssignmentController extends Controller
             // Tugas aktif: yang dipublikasi dan belum lewat deadline atau tanpa deadline
             $query->where('is_published', true)
                   ->where(function($q) {
-                      $q->where('deadline', '>', now())
-                        ->orWhereNull('deadline');
+                      $q->where('due_date', '>', now())
+                        ->orWhereNull('due_date');
                   });
         } elseif ($tab === 'history') {
             // Semua tugas untuk riwayat
@@ -60,22 +60,24 @@ class AssignmentController extends Controller
         
         // Apply additional filters if provided
         if ($request->filled('subject_id')) {
-            $query->where('subject_id', $request->subject_id);
+            $query->where('class_subject_id', $request->subject_id);
         }
         
-        if ($request->filled('class')) {
-            $query->where('class', $request->class);
+        if ($request->filled('class_id')) {
+            $query->whereHas('classSubject', function($q) use ($request) {
+                $q->where('class_id', $request->class_id);
+            });
         }
         
         if ($request->filled('status')) {
             $now = now();
             switch ($request->status) {
                 case 'active':
-                    $query->where('deadline', '>', $now)
+                    $query->where('due_date', '>', $now)
                           ->where('is_published', true);
                     break;
                 case 'completed':
-                    $query->where('deadline', '<', $now);
+                    $query->where('due_date', '<', $now);
                     break;
                 case 'draft':
                     $query->where('is_published', false);
@@ -113,7 +115,22 @@ class AssignmentController extends Controller
         }
         
         // Get subjects and stats for filters
-        $subjects = Subject::where('is_active', true)->get();
+        $guruId = Auth::id();
+        $subjects = \DB::table('class_subjects')
+            ->join('subjects', 'class_subjects.subject_id', '=', 'subjects.id')
+            ->where('class_subjects.teacher_id', $guruId)
+            ->where('subjects.is_active', true)
+            ->select('class_subjects.id', 'subjects.name')
+            ->distinct()
+            ->get();
+            
+        $classes = \DB::table('classes')
+            ->join('class_subjects', 'classes.id', '=', 'class_subjects.class_id')
+            ->where('class_subjects.teacher_id', $guruId)
+            ->select('classes.id', 'classes.name')
+            ->distinct()
+            ->orderBy('classes.name')
+            ->get();
         
         // Calculate stats for dashboard
         $totalStats = [
@@ -121,7 +138,7 @@ class AssignmentController extends Controller
             'active_assignments' => Assignment::where('guru_id', Auth::id())
                 ->where('is_published', true)
                 ->where(function($q) {
-                    $q->where('deadline', '>', now())->orWhereNull('deadline');
+                    $q->where('due_date', '>', now())->orWhereNull('due_date');
                 })->count(),
             'total_submissions' => AssignmentSubmission::whereHas('assignment', function($q) {
                 $q->where('guru_id', Auth::id());
@@ -131,7 +148,7 @@ class AssignmentController extends Controller
             })->whereNotNull('score')->count(),
         ];
 
-        return view('guru.assignments.index', compact('assignments', 'subjects', 'tab', 'totalStats'));
+        return view('guru.assignments.index', compact('assignments', 'subjects', 'classes', 'tab', 'totalStats'));
     }
 
     /**
@@ -139,8 +156,26 @@ class AssignmentController extends Controller
      */
     public function create()
     {
-        $subjects = Subject::where('is_active', true)->get();
-        return view('guru.assignments.create', compact('subjects'));
+        $guruId = Auth::id();
+        
+        // Get subjects assigned to this guru
+        $classSubjects = \DB::table('class_subjects')
+            ->join('subjects', 'class_subjects.subject_id', '=', 'subjects.id')
+            ->where('subjects.is_active', true)
+            ->where('class_subjects.teacher_id', $guruId)
+            ->select('class_subjects.id', 'subjects.name as subject_name', 'class_subjects.class_id')
+            ->get();
+        
+        // Get classes where this guru teaches
+        $classes = \DB::table('classes')
+            ->join('class_subjects', 'classes.id', '=', 'class_subjects.class_id')
+            ->where('class_subjects.teacher_id', $guruId)
+            ->distinct()
+            ->select('classes.id', 'classes.name')
+            ->orderBy('classes.name')
+            ->get();
+
+        return view('guru.assignments.create', compact('classSubjects', 'classes'));
     }
 
     /**
@@ -152,8 +187,8 @@ class AssignmentController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'instructions' => 'nullable|string',
-            'subject_id' => 'required|exists:subjects,id',
-            'class' => 'nullable|string|max:10',
+            'class_id' => 'required|exists:classes,id',
+            'subject_id' => 'required|exists:class_subjects,id',
             'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,txt,zip,rar|max:20480',
             'deadline' => 'required|date|after:now',
             'max_score' => 'required|numeric|min:1|max:1000',
@@ -192,11 +227,10 @@ class AssignmentController extends Controller
             $assignment->title = $request->title;
             $assignment->description = $request->description;
             $assignment->instructions = $request->instructions;
-            $assignment->deadline = $request->deadline;
+            $assignment->due_date = $request->deadline;
             $assignment->max_score = $request->max_score;
-            $assignment->subject_id = $request->subject_id;
-            $assignment->class = $request->class;
-            $assignment->allow_late = $request->has('allow_late');
+            $assignment->class_subject_id = $request->subject_id;
+                        $assignment->allow_late = $request->has('allow_late');
             $assignment->is_published = $request->has('is_published');
 
             if ($request->hasFile('file')) {
@@ -305,11 +339,10 @@ class AssignmentController extends Controller
             $assignment->title = $request->title;
             $assignment->description = $request->description;
             $assignment->instructions = $request->instructions;
-            $assignment->deadline = $request->deadline;
+            $assignment->due_date = $request->deadline;
             $assignment->max_score = $request->max_score;
-            $assignment->subject_id = $request->subject_id;
-            $assignment->class = $request->class;
-            $assignment->allow_late = $request->has('allow_late');
+            $assignment->class_subject_id = $request->subject_id;
+                        $assignment->allow_late = $request->has('allow_late');
             $assignment->is_published = $request->has('is_published');
 
             if ($request->hasFile('file')) {
@@ -407,7 +440,7 @@ class AssignmentController extends Controller
             $submission->update([
                 'score' => $request->score,
                 'feedback' => $request->feedback,
-                'graded_at' => now(),
+                'status' => 'graded',
                 'graded_by' => Auth::id(),
             ]);
 
@@ -511,7 +544,7 @@ class AssignmentController extends Controller
             $submission->update([
                 'score' => $request->score,
                 'feedback' => $request->feedback,
-                'graded_at' => now(),
+                'status' => 'graded',
                 'graded_by' => Auth::id(),
             ]);
 

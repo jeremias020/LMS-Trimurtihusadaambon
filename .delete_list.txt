@@ -1,0 +1,8 @@
+resources/views/partials/footer-siswa.blade.php
+resources/views/partials/footer-guru.blade.php
+resources/views/partials/footer-admin.blade.php
+resources/views/partials/header-siswa.blade.php
+resources/views/partials/header-guru.blade.php
+resources/views/partials/header-admin-like-guru.blade.php
+resources/views/partials/sidebar-siswa.blade.php
+resources/views/partials/sidebar-guru.blade.php

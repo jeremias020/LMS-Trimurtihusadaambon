@@ -17,7 +17,7 @@ class AttendanceStoreRequest extends FormRequest
     {
         return [
             'siswa_id' => 'required|exists:siswas,id',
-            'tanggal' => [
+            'date' => [
                 'required',
                 'date',
                 Rule::unique('attendances')->where(function ($query) {
@@ -58,7 +58,7 @@ class AttendanceStoreRequest extends FormRequest
     {
         return [
             'siswa_id' => 'siswa',
-            'tanggal' => 'tanggal',
+            'date' => 'date',
             'status' => 'status absensi',
             'keterangan' => 'keterangan',
             'waktu_masuk' => 'waktu masuk',

@@ -1,0 +1,59 @@
+=== PERBAIKAN TOMBOL LOGOUT GURU ===
+
+🔍 PROBLEM IDENTIFIED:
+- Tombol logout di header guru tidak berfungsi
+- Missing logout form di header-guru.blade.php
+- Layout app-dashboard.blade.php menggunakan header umum bukan header-guru
+- JavaScript logout tidak menemukan form yang benar
+
+✅ FIXES APPLIED:
+
+1. HEADER-GURU FIX:
+   - Added missing logout form
+   - Form action: {{ route('logout') }}
+   - Method: POST
+   - CSRF token included
+   - Hidden form dengan id="logout-form"
+
+2. LAYOUT FIX:
+   - Added role-based header inclusion
+   - Guru → header-guru.blade.php
+   - Admin → header-admin.blade.php
+   - Siswa → header-siswa.blade.php
+   - Default → header.blade.php
+
+3. JAVASCRIPT COMPATIBILITY:
+   - onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+   - Form submission dengan proper method
+   - CSRF protection maintained
+
+📱 EXPECTED BEHAVIOR:
+1. Login sebagai guru
+2. Klik dropdown user di header
+3. Klik "Logout"
+4. Form submit dengan POST method
+5. Redirect ke halaman login
+6. Session cleared
+
+🔧 TESTING STEPS:
+1. Login sebagai guru
+2. Klik nama user di header kanan
+3. Klik menu "Logout" (warna merah)
+4. Verifikasi: Logout berhasil
+5. Verifikasi: Redirect ke login page
+6. Verifikasi: Session cleared
+
+🎉 STATUS: FIXED
+- Logout form: Added
+- Role-based header: Implemented
+- JavaScript: Compatible
+- CSRF protection: Maintained
+- Ready for testing: Yes
+
+📱 FINAL RESULT:
+Tombol logout guru sudah diperbaiki dengan:
+- Proper logout form
+- Role-based header inclusion
+- Working JavaScript
+- CSRF protection
+- Clean logout process

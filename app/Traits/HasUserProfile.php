@@ -42,8 +42,8 @@ trait HasUserProfile
     {
         $profile = $this->getProfileData();
         
-        if ($profile && isset($profile->tanggal_lahir)) {
-            return now()->diffInYears($profile->tanggal_lahir);
+        if ($profile && isset($profile->date_lahir)) {
+            return now()->diffInYears($profile->date_lahir);
         }
 
         if ($this->birth_date) {
@@ -162,7 +162,7 @@ trait HasUserProfile
         if ($this->isSiswa()) {
             return !empty($profile->nis) && 
                    !empty($profile->tempat_lahir) && 
-                   !empty($profile->tanggal_lahir) &&
+                   !empty($profile->date_lahir) &&
                    !empty($profile->kelas_id);
         }
 

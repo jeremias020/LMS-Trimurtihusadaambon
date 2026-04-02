@@ -14,19 +14,17 @@ class AssignmentSubmission extends Model
 
     protected $fillable = [
         'assignment_id',
-        'siswa_id',
-        'file_path',
+        'student_id',
+        'file_url',
         'submission_text',
         'score',
         'feedback',
         'submitted_at',
-        'graded_at'
     ];
 
     protected $casts = [
         'score' => 'decimal:2',
         'submitted_at' => 'datetime',
-        'graded_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -40,7 +38,7 @@ class AssignmentSubmission extends Model
 
     public function siswa()
     {
-        return $this->belongsTo(User::class, 'siswa_id');
+        return $this->belongsTo(User::class, 'student_id');
     }
 
     // Scopes
@@ -74,6 +72,6 @@ class AssignmentSubmission extends Model
             return $this->is_late ? 'late_submission' : 'submitted';
         }
         
-        return $this->score >= $this->assignment->max_score * 0.6 ? 'passed' : 'failed';
+        return $this->score >= $this->assignment->max_score * 6 ? 'passed' : 'failed';
     }
 }

@@ -17,12 +17,15 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- Bootstrap CSS 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    
+
     <!-- Guru Custom CSS -->
     <link href="{{ asset('css/guru-custom.css') }}" rel="stylesheet">
 
@@ -68,7 +71,7 @@
         top: 0;
         left: 0;
         height: 100vh;
-        z-index: 1000;
+        z-index: 1030; /* Increased to be above header */
         transition: all 0.3s ease;
         overflow-y: auto;
         box-shadow: 4px 0 10px rgba(0,0,0,0.1);
@@ -104,7 +107,7 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         position: sticky;
         top: 0;
-        z-index: 999;
+        z-index: 1020; /* Below sidebar but above content */
         border-bottom: 1px solid var(--border-color);
     }
 
@@ -115,40 +118,40 @@
         color: inherit;
         transition: all 0.3s ease;
     }
-    
+
     .btn-ghost:hover {
         background: rgba(13, 110, 253, 0.1);
         color: var(--primary-color);
         transform: translateY(-1px);
     }
-    
+
     .pulse-animation {
         animation: pulse 2s infinite;
     }
-    
+
     @keyframes pulse {
         0% { transform: scale(1); }
         50% { transform: scale(1.1); }
         100% { transform: scale(1); }
     }
-    
+
     /* Search Enhancement */
     .input-group:focus-within {
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         border-radius: 50px;
     }
-    
+
     .search-tag {
         cursor: pointer;
         transition: all 0.2s ease;
     }
-    
+
     .search-tag:hover {
         background-color: var(--primary-color) !important;
         color: white !important;
         transform: translateY(-1px);
     }
-    
+
     /* Dropdown Enhancements */
     .dropdown-menu {
         border: none;
@@ -157,20 +160,20 @@
         padding: 0.5rem 0;
         margin-top: 0.5rem;
     }
-    
+
     .dropdown-item {
         padding: 0.75rem 1.5rem;
         transition: all 0.2s ease;
         border-radius: 8px;
         margin: 0 0.5rem;
     }
-    
+
     .dropdown-item:hover {
         background: linear-gradient(135deg, var(--primary-color), #0a58ca);
         color: white;
         transform: translateX(5px);
     }
-    
+
     /* User Profile Enhancements */
     .dropdown-item.text-danger:hover {
         background: linear-gradient(135deg, var(--danger-color), #c02a2a);
@@ -182,6 +185,8 @@
         padding: 1.5rem;
         padding-bottom: 2rem;
         min-height: calc(100vh - var(--header-height) - 200px);
+        position: relative; /* Ensure proper stacking context */
+        z-index: 1; /* Above overlay but below header */
     }
 
     .stats-card {
@@ -233,7 +238,7 @@
         box-sizing: border-box;
         clear: both;
     }
-    
+
     /* Ensure footer is always visible */
     .main-wrapper {
         position: relative;
@@ -242,25 +247,49 @@
         flex-direction: column;
         min-height: 100vh;
     }
-    
+
     .main-content {
         flex: 1;
     }
 
+    /* Mobile Sidebar Overlay */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1025; /* Above header, below sidebar */
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        display: none; /* Hidden on desktop */
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
     @media (max-width: 768px) {
+        .sidebar-overlay {
+            display: block; /* Show on mobile */
+        }
+        
         .sidebar {
             transform: translateX(-100%);
         }
-        
+
         .sidebar.show {
             transform: translateX(0);
         }
-        
+
         .main-content {
             margin-left: 0;
             width: 100%;
         }
-        
+
         .content-area {
             padding: 1rem;
             padding-bottom: 1rem;
@@ -272,6 +301,9 @@
 </head>
 <body>
     <div class="main-wrapper">
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
         <!-- Sidebar -->
         @include('partials.sidebar-guru')
 
@@ -296,9 +328,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div>
                         <h1 class="h3 mb-0 text-dark fw-bold">@yield('page-title', 'Dashboard Guru')</h1>
-                        @hasSection('page-subtitle')
-                            <p class="text-muted mb-0">@yield('page-subtitle')</p>
-                        @endif
+                        <p class="text-muted mb-0">@yield('page-subtitle', '')</p>
                     </div>
                     <div>
                         @yield('page-actions')
@@ -309,9 +339,9 @@
                 @yield('content')
             </div>
         </div>
-        
+
         <!-- Footer diluar main-content -->
-        @include('partials.footer-guru')
+        @include('partials.footer')
     </div>
 
     <!-- jQuery -->
@@ -327,26 +357,30 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Notifications JS -->
+    <script src="{{ asset('js/notifications.js') }}" defer></script>
+
     @stack('js')
+    @stack('scripts')
 
     <script>
+        // Bootstrap notification data for dynamic rendering in header-guru
+        window.__notifData = {
+            // eslint-disable-next-line
+            // prettier-ignore
+            notifications: @json($notifications ?? []),
+            unreadCount: {{ $unreadCount ?? 0 }}
+        };
+        
+        // Setup CSRF token for all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
         $(document).ready(function() {
-            // Enhanced Sidebar toggle functionality
-            $('#sidebarToggle, .sidebar-toggle').on('click', function(e) {
-                e.preventDefault();
-                $('.sidebar').toggleClass('collapsed');
-                $('.main-content').toggleClass('expanded');
-                
-                // Animate toggle button
-                $(this).find('i').addClass('fa-spin');
-                setTimeout(() => {
-                    $(this).find('i').removeClass('fa-spin');
-                }, 300);
-                
-                // Save state in localStorage
-                const isCollapsed = $('.sidebar').hasClass('collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            });
+            // Remove duplicate sidebar toggle functionality - handled in sidebar-guru.blade.php
 
             // Enhanced Search functionality
             $('#globalSearch').on('focus', function() {
@@ -354,7 +388,7 @@
                 $(this).closest('.input-group').addClass('shadow-lg');
             }).on('blur', function(e) {
                 setTimeout(() => {
-                    if (!$(e.relatedTarget).closest('#searchSuggestions').length) {
+                    if (!$(e.target).closest('#searchSuggestions').length) {
                         $('#searchSuggestions').addClass('d-none');
                         $(this).closest('.input-group').removeClass('shadow-lg');
                     }
@@ -368,22 +402,91 @@
                 $('#globalSearchForm').submit();
             });
 
+            // Notification dropdown: render dynamic list from server data
+            (function renderNotifications(){
+                const data = window.__notifData || { notifications: [], unreadCount: 0 };
+                const $btn = $('#notificationDropdown');
+                if ($btn.length === 0) return;
+
+                // Badge update
+                const existingBadge = $btn.find('.badge.rounded-pill');
+                if (data.unreadCount > 0) {
+                    if (existingBadge.length) {
+                        existingBadge.text(data.unreadCount).show();
+                    } else {
+                        $('<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse-animation" style="font-size: 0.6rem;"></span>')
+                            .text(data.unreadCount)
+                            .appendTo($btn);
+                    }
+                } else {
+                    existingBadge.remove();
+                }
+
+                // Build dropdown content
+                const $menu = $btn.closest('.dropdown').find('.dropdown-menu');
+                if ($menu.length === 0) return;
+
+                let html = '';
+                html += '<li class="dropdown-header d-flex justify-content-between align-items-center py-3">';
+                html += '  <div><span class="fw-bold text-dark">Notifikasi</span><div><small class="text-muted">' + (data.unreadCount || 0) + ' notifikasi baru</small></div></div>';
+                html += '  <button class="btn btn-sm btn-outline-primary" id="markAllRead" title="Tandai Semua Sudah Dibaca"><i class="fas fa-check-double"></i></button>';
+                html += '</li><li><hr class="dropdown-divider m-0"></li>';
+
+                if (data.notifications && data.notifications.length) {
+                    data.notifications.forEach(function(n){
+                        const title = n.title || n.judul || 'Notifikasi';
+                        const content = n.content || n.pesan || '';
+                        const createdAt = n.created_at_human || (n.created_at ? new Date(n.created_at).toLocaleString('id-ID') : '');
+                        html += '<li>';
+                        html += '  <a class="dropdown-item py-3" href="#">';
+                        html += '    <div class="d-flex">';
+                        html += '      <div class="flex-shrink-0">';
+                        html += '        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="fas fa-bell text-white"></i></div>';
+                        html += '      </div>';
+                        html += '      <div class="flex-grow-1 ms-3">';
+                        html += '        <div class="fw-medium">' + $('<div>').text(title).html() + '</div>';
+                        html += '        <small class="text-muted d-block">' + $('<div>').text(content).html() + '</small>';
+                        html += '        <small class="text-muted d-block">' + $('<div>').text(createdAt).html() + '</small>';
+                        html += '      </div>';
+                        html += '    </div>';
+                        html += '  </a>';
+                        html += '</li>';
+                    });
+                } else {
+                    html += '<li><div class="px-3 py-4 text-center text-muted"><i class="fas fa-bell-slash fa-lg mb-2"></i><div>Tidak ada notifikasi</div></div></li>';
+                }
+
+                html += '<li><hr class="dropdown-divider"></li>';
+                html += '<li><a class="dropdown-item text-center py-2" href="#"><small class="fw-medium">Lihat Semua Notifikasi</small></a></li>';
+
+                $menu.html(html);
+            })();
+
             // Notification dropdown enhancements
             $('#notificationDropdown').on('shown.bs.dropdown', function() {
-                // Mark notifications as viewed (optional)
                 console.log('Notifications viewed');
             });
+
+            // Remove Praktikum items from header quick actions menu (UI-only)
+            (function removePraktikumUI(){
+                // Remove any dropdown-item that references Praktikum
+                $('.dropdown-menu a:contains("Praktikum"), .dropdown-menu a .fa-flask').closest('li').remove();
+                // Remove any quick action cards with flask icon (fallback in case exists elsewhere)
+                $('.quick-action-card i.fa-flask').closest('.col-lg-3, .col-md-6, .card, a').remove();
+                // Remove any sidebar leftover with flask (safety)
+                $('a .fa-flask').closest('a').remove();
+            })();
 
             // Mark all notifications as read
             $('#markAllRead').on('click', function(e) {
                 e.preventDefault();
                 $(this).html('<i class="fas fa-spinner fa-spin"></i>');
-                
+
                 // Simulate API call
                 setTimeout(() => {
                     $(this).html('<i class="fas fa-check"></i>');
                     $('.badge.bg-danger').fadeOut();
-                    
+
                     // Reset after 2 seconds
                     setTimeout(() => {
                         $(this).html('<i class="fas fa-check-double"></i>');
@@ -391,26 +494,18 @@
                 }, 1000);
             });
 
+            // Sidebar functionality handled in sidebar-guru.blade.php
             // Mobile sidebar toggle
             $('#mobileSidebarToggle').on('click', function(e) {
                 e.preventDefault();
                 $('.sidebar').toggleClass('show');
+                $('#sidebarOverlay').toggleClass('active');
             });
 
-            // Restore sidebar state from localStorage
-            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (sidebarCollapsed) {
-                $('.sidebar').addClass('collapsed');
-                $('.main-content').addClass('expanded');
-            }
-
-            // Close mobile sidebar when clicking outside
-            $(document).on('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    if (!$(e.target).closest('.sidebar, #mobileSidebarToggle').length) {
-                        $('.sidebar').removeClass('show');
-                    }
-                }
+            // Close mobile sidebar when clicking overlay
+            $('#sidebarOverlay').on('click', function() {
+                $('.sidebar').removeClass('show');
+                $('#sidebarOverlay').removeClass('active');
             });
 
             // Auto-hide alerts after 5 seconds

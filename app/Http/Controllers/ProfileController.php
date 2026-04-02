@@ -130,7 +130,7 @@ class ProfileController extends Controller
                     'nis' => $request->nis,
                     'name' => $request->name,
                     'jenis_kelamin' => $request->jenis_kelamin,
-                    'tanggal_lahir' => $request->tanggal_lahir,
+                    'tanggal_lahir' => $request->date_lahir,
                     'alamat' => $request->alamat,
                     'nama_ortu' => $request->nama_ortu,
                     'no_telepon_ortu' => $request->no_telepon_ortu,
@@ -149,7 +149,7 @@ class ProfileController extends Controller
                     'nip' => $request->nip,
                     'name' => $request->name,
                     'jenis_kelamin' => $request->jenis_kelamin,
-                    'tanggal_lahir' => $request->tanggal_lahir,
+                    'tanggal_lahir' => $request->date_lahir,
                     'alamat' => $request->alamat,
                     'bidang_keahlian' => $request->bidang_keahlian,
                 ];

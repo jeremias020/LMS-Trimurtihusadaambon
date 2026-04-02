@@ -1,0 +1,380 @@
+=== PANDUAN LENGKAP CARA MEMBUAT PENILAIAN MANUAL ===
+
+🎯 **STEP BY STEP GUIDE - BUAT PENILAIAN MANUAL**
+
+---
+
+## 🔐 **LANGKAH 1: LOGIN SEBAGAI GURU**
+
+### **📱 Akses Login:**
+1. **Buka browser** → Kunjungi URL aplikasi LMS
+2. **Halaman Login** → Masukkan kredensial:
+   ```
+   Email: guru@trimurti.sch.id
+   Password: password
+   ```
+3. **Klik "Login"** → Dashboard guru akan muncul
+
+---
+
+## 🧭 **LANGKAH 2: NAVIGASI KE HALAMAN PENILAIAN**
+
+### **📱 Menu Navigation:**
+1. **Sidebar Menu** → Cari menu "Penilaian"
+2. **Klik "Penilaian"** → Halaman Manajemen Penilaian terbuka
+3. **Lihat tombol hijau** → "Penilaian Otomatis"
+4. **Klik tombol biru** → "Buat Penilaian Manual"
+
+---
+
+## 📝 **LANGKAH 3: FORMULIR PENILAIAN MANUAL**
+
+### **🎯 Section 1: Jenis & Target Penilaian**
+
+#### **📋 Langkah 3.1: Pilih Jenis Penilaian**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📋 Jenis & Target Penilaian                                 │
+│                                                             │
+│ 🎯 Jenis Penilaian *                                       │
+│ [Pilih Jenis Penilaian ▼]                                  │
+│ • Tugas Teori                                              │
+│ • Praktikum Keterampilan                                   │
+│                                                             │
+│ 👨‍🎓 Siswa *                                                │
+│ [Pilih Siswa ▼]                                            │
+│ • Eko Gunawan - XI Keperawatan A                           │
+│ • Siti Nurhaliza - XI Keperawatan A                       │
+│ • Ahmad Fauzi - XI Keperawatan A                           │
+│                                                             │
+│ 💡 Tips: Pilih jenis penilaian terlebih dahulu...          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik dropdown "Jenis Penilaian"**
+2. **Pilih "Tugas Teori"** atau **"Praktikum Keterampilan"**
+3. **Klik dropdown "Siswa"**
+4. **Pilih siswa** yang akan dinilai
+5. **✅ Notifikasi sukses** akan muncul
+
+---
+
+### **🎯 Section 2: Pilih Aktivitas Penilaian**
+
+#### **📋 Jika Memilih "Tugas Teori":**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🎯 Pilih Aktivitas Penilaian                                │
+│                                                             │
+│ 📝 Tugas *                                                 │
+│ [Pilih Tugas ▼]                                            │
+│ • Tugas Konsep Keperawatan (Max: 100)                      │
+│ • Essay Farmakologi Dasar (Max: 100)                       │
+│ • Laporan Kasus Keperawatan (Max: 100)                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik dropdown "Tugas"**
+2. **Pilih tugas** yang akan dinilai
+3. **✅ Sistem akan menampilkan** nilai maksimal otomatis
+
+#### **📋 Jika Memilih "Praktikum Keterampilan":**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🎯 Pilih Aktivitas Penilaian                                │
+│                                                             │
+│ 🔬 Praktikum *                                             │
+│ [Pilih Praktikum ▼]                                        │
+│ • Praktikum Tindakan Dasar (Max: 100)                      │
+│ • Praktikum Injeksi IM (Max: 100)                          │
+│ • Praktikum Perawatan Luka (Max: 100)                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik dropdown "Praktikum"**
+2. **Pilih praktikum** yang akan dinilai
+3. **✅ Sistem akan menampilkan** nilai maksimal otomatis
+
+---
+
+### **🎯 Section 3: Detail Nilai & Feedback**
+
+#### **📊 Langkah 3.3: Input Nilai**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📊 Detail Nilai & Feedback                                   │
+│                                                             │
+│ 🎯 Nilai *                                                 │
+│ [ 85 ]                                                     │
+│ 📊 Persentase: 85.0% dari nilai maksimal                    │
+│                                                             │
+│ 💡 Tips: Masukkan nilai antara 0 dan nilai maksimal...       │
+│                                                             │
+│ 📝 Nilai Maksimal                                          │
+│ [ 100 ]                                                    │
+│ Nilai maksimal ditentukan dari aktivitas yang dipilih       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik field "Nilai"**
+2. **Masukkan angka** 0-100 (sesuai nilai maksimal)
+3. **✅ Persentase otomatis** akan muncul
+4. **✅ Validasi otomatis** mencegah nilai invalid
+
+#### **📝 Langkah 3.4: Input Feedback**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📝 Umpan Balik dan Catatan                                  │
+│                                                             │
+│ [Tuliskan feedback untuk siswa...]                         │
+│                                                             │
+│ 💡 Contoh feedback:                                         │
+│ "Bagus! Pemahaman konsep sudah baik. Perlu lebih banyak   │
+│ latihan pada bagian aspek keperawatan gerontik..."          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik field "Umpan Balik"**
+2. **Tulis feedback** yang konstruktif
+3. **💡 Tips:** Berikan pujian dan saran perbaikan
+
+---
+
+### **🎯 Section 4: Tanggal & Pengaturan**
+
+#### **📅 Langkah 3.5: Tanggal Penilaian**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📅 Tanggal & Pengaturan                                     │
+│                                                             │
+│ 📅 Tanggal Penilaian *                                     │
+│ [2024-03-13]                                               │
+│                                                             │
+│ ℹ️ Info                                                     │
+│ ✅ Publikasi Otomatis                                      │
+│ Siswa dapat langsung melihat nilai setelah disimpan        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Mengisi:**
+1. **Klik field "Tanggal Penilaian"**
+2. **Pilih tanggal** (default: hari ini)
+3. **✅ Tanggal tidak boleh melebihi hari ini**
+
+---
+
+## 💾 **LANGKAH 4: SIMPAN PENILAIAN**
+
+### **🎯 Tombol Aksi:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│ [ Batal ] [ Simpan Penilaian ]                             │
+│                                                             │
+│ ✅ Batal → Kembali ke halaman index                          │
+│ ✅ Simpan → Menyimpan dan redirect ke index                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**🔧 Cara Menyimpan:**
+1. **Review semua data** yang diisi
+2. **Klik "Simpan Penilaian"**
+3. **✅ Loading animation** akan muncul
+4. **✅ Success message** akan tampil
+5. **✅ Auto redirect** ke halaman penilaian index
+
+---
+
+## 🎉 **CONTOH LENGKAP PEMBUATAN PENILAIAN**
+
+### **📱 Contoh 1: Penilaian Tugas Teori**
+
+#### **🔧 Step-by-Step:**
+1. **Login** → guru@trimurti.sch.id / password
+2. **Navigate** → Penilaian → Buat Penilaian Manual
+3. **Jenis Penilaian** → "Tugas Teori"
+4. **Siswa** → "Eko Gunawan - XI Keperawatan A"
+5. **Tugas** → "Tugas Konsep Keperawatan (Max: 100)"
+6. **Nilai** → "85"
+7. **Feedback** → "Bagus! Pemahaman konsep keperawatan sudah baik. Perlu lebih banyak latihan pada bagian aspek keperawatan gerontik untuk hasil yang lebih maksimal."
+8. **Tanggal** → "2024-03-13"
+9. **Simpan** → Klik "Simpan Penilaian"
+
+#### **✅ Expected Result:**
+- **Success message:** "Penilaian tugas berhasil disimpan!"
+- **Redirect:** Kembali ke halaman penilaian index
+- **Data tersimpan:** Eko Gunawan dapat melihat nilai langsung
+
+---
+
+### **📱 Contoh 2: Penilaian Praktikum**
+
+#### **🔧 Step-by-Step:**
+1. **Login** → guru@trimurti.sch.id / password
+2. **Navigate** → Penilaian → Buat Penilaian Manual
+3. **Jenis Penilaian** → "Praktikum Keterampilan"
+4. **Siswa** → "Siti Nurhaliza - XI Keperawatan A"
+5. **Praktikum** → "Praktikum Tindakan Dasar (Max: 100)"
+6. **Nilai** → "78"
+7. **Feedback** → "Praktikum cukup baik. Teknik injasi sudah benar, namun perlu perhatian lebih pada prosedur sterilisasi. Latihan lebih lanjut diperlukan untuk mencapai hasil sempurna."
+8. **Tanggal** → "2024-03-13"
+9. **Simpan** → Klik "Simpan Penilaian"
+
+#### **✅ Expected Result:**
+- **Success message:** "Penilaian praktikum berhasil disimpan!"
+- **Redirect:** Kembali ke halaman penilaian index
+- **Data tersimpan:** Siti Nurhaliza dapat melihat nilai langsung
+
+---
+
+## 🔧 **TIPS & TRIK PEMBUATAN PENILAIAN**
+
+### **💡 Tips untuk Nilai:**
+```php
+// Skoring Guidelines:
+90-100 : Sangat Baik (Excellent)
+80-89  : Baik (Good)
+70-79  : Cukup (Satisfactory)
+60-69  : Kurang (Needs Improvement)
+<60    : Belum Lulus (Fail)
+```
+
+### **💡 Tips untuk Feedback:**
+```php
+// Good feedback structure:
+1. ✅ Pujian untuk yang baik
+2. 🎯 Area yang perlu improvement
+3. 💡 Saran konkret untuk perbaikan
+4. 🌟 Motivasi untuk terus belajar
+
+// Examples:
+"Bagus! [Pujian]. Fokus pada: [area improvement]. 
+Saran: [saran konkret]. Keep up the good work!"
+```
+
+### **💡 Tips untuk Workflow:**
+1. **Siapkan data** → Buat tugas/praktikum terlebih dahulu
+2. **Check availability** → Pastikan siswa dan aktivitas tersedia
+3. **Input systematically** → Isi dari atas ke bawah
+4. **Review before save** → Double-check semua data
+5. **Save regularly** → Jangan tunggu terlalu lama
+
+---
+
+## ⚠️ **TROUBLESHOOTING**
+
+### **❌ Common Issues & Solutions:**
+
+#### **1. Tidak ada siswa di dropdown:**
+```
+🔧 Problem: Tidak ada siswa yang tersedia
+🔧 Solution: 
+- Pastikan ada siswa dengan status 'active'
+- Check kelas siswa sudah di-set
+- Refresh halaman
+```
+
+#### **2. Tidak ada tugas/praktikum:**
+```
+🔧 Problem: Tidak ada aktivitas yang tersedia
+🔧 Solution:
+- Buat tugas/praktikum terlebih dahulu
+- Pastikan status 'published'
+- Check guru ownership
+```
+
+#### **3. Nilai tidak bisa disimpan:**
+```
+🔧 Problem: Error saat save
+🔧 Solution:
+- Check semua required field terisi
+- Validasi format nilai (0-100)
+- Check permission guru
+```
+
+#### **4. Error 500:**
+```
+🔧 Problem: Server error
+🔧 Solution:
+- Check log: storage/logs/laravel.log
+- Verify database connection
+- Clear cache: php artisan view:clear
+```
+
+---
+
+## 🎯 **BEST PRACTICES**
+
+### **✅ Do's:**
+- ✅ **Review data** sebelum menyimpan
+- ✅ **Berikan feedback** yang konstruktif
+- ✅ **Gunakan nilai yang adil** dan konsisten
+- ✅ **Tulis feedback** dengan bahasa yang positif
+- ✅ **Simpan secara teratur** untuk menghindari kehilangan data
+
+### **❌ Don'ts:**
+- ❌ **Leave required fields** kosong
+- ❌ **Input nilai di luar range** (0-100)
+- ❌ **Gunakan bahasa kasar** dalam feedback
+- ❌ **Buat penilaian tanpa review**
+- ❌ **Tunggu terlalu lama** untuk menyimpan
+
+---
+
+## 🎉 **SUMMARY LENGKAP**
+
+### **📱 Complete Workflow:**
+1. **Login** → Guru dashboard
+2. **Navigate** → Penilaian → Buat Penilaian Manual
+3. **Fill Form** → Jenis → Siswa → Aktivitas → Nilai → Feedback → Tanggal
+4. **Review** → Check semua data
+5. **Save** → Klik "Simpan Penilaian"
+6. **Success** → Message dan redirect
+7. **Verify** → Check di halaman index
+
+### **🎯 Key Points:**
+- **✅ Dynamic form** (berubah berdasarkan jenis)
+- **✅ Real-time validation** (client & server)
+- **✅ Smart notifications** (user-friendly)
+- **✅ Data security** (guru ownership check)
+- **✅ Professional UI** (modern design)
+- **✅ Mobile responsive** (works di semua devices)
+
+### **🎉 Benefits:**
+- **🚀 Fast** → Pembuatan penilaian yang cepat
+- **🎯 Accurate** → Validasi yang ketat
+- **📊 Trackable** → Audit trail lengkap
+- **🔄 Flexible** → Support tugas & praktikum
+- **💬 Professional** → Feedback system yang baik
+
+---
+
+## 🎯 **FINAL VERIFICATION**
+
+### **✅ Checklist Selesai:**
+- [ ] Login sebagai guru berhasil
+- [ ] Navigasi ke halaman penilaian manual berhasil
+- [ ] Form terisi dengan benar
+- [ ] Validasi berjalan normal
+- [ ] Penilaian berhasil disimpan
+- [ ] Success message muncul
+- [ ] Redirect ke halaman index berhasil
+- [ ] Data tersimpan di database
+- [ ] Siswa dapat melihat nilai
+
+---
+
+**🎉 SELAMAT! Anda sekarang sudah bisa membuat penilaian manual dengan mudah!**
+
+**📱 Langkah selanjutnya:**
+- **Coba buat penilaian** untuk siswa berbeda
+- **Eksplorasi fitur auto assessment** untuk praktikum
+- **Lihat data penilaian** di halaman index
+- **Edit/delete penilaian** jika diperlukan
+
+**🎯 Happy grading! 🎓**

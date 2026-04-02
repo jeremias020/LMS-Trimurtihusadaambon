@@ -29,10 +29,11 @@ class AttendanceController extends Controller
         $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
         $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
 
-        $attendances = Attendance::where('siswa_id', $siswaId)
-            ->whereYear('tanggal', $year)
-            ->whereMonth('tanggal', $month)
-            ->orderBy('tanggal', 'desc')
+        $attendances = Attendance::with(['subject'])
+            ->where('siswa_id', $siswaId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date', 'desc')
             ->paginate(20);
 
         $monthlyStats = $this->getMonthlyStats($siswaId, $month, $year);
@@ -51,7 +52,7 @@ class AttendanceController extends Controller
 
         $stats = Attendance::selectRaw('status, COUNT(*) as count')
             ->where('siswa_id', $siswaId)
-            ->whereBetween('tanggal', [$startDate, $endDate])
+            ->whereBetween('date', [$startDate, $endDate])
             ->groupBy('status')
             ->get();
 
@@ -129,10 +130,11 @@ class AttendanceController extends Controller
         $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
         $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
 
-        $attendances = Attendance::where('siswa_id', $siswaId)
-            ->whereYear('tanggal', $year)
-            ->whereMonth('tanggal', $month)
-            ->orderBy('tanggal', 'asc')
+        $attendances = Attendance::with(['subject'])
+            ->where('siswa_id', $siswaId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date', 'asc')
             ->get();
 
         $stats = $this->getMonthlyStats($siswaId, $month, $year);
@@ -156,10 +158,11 @@ class AttendanceController extends Controller
         $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
         $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
 
-        $attendances = Attendance::where('siswa_id', $siswaId)
-            ->whereYear('tanggal', $year)
-            ->whereMonth('tanggal', $month)
-            ->orderBy('tanggal', 'desc')
+        $attendances = Attendance::with(['subject'])
+            ->where('siswa_id', $siswaId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date', 'desc')
             ->get();
 
         $stats = $this->getMonthlyStats($siswaId, $month, $year);
@@ -190,7 +193,7 @@ class AttendanceController extends Controller
             ->whereIn('status', ['sakit', 'izin'])
             ->whereNotNull('keterangan')
             // ->with('approval') // ✅ Hapus jika tidak ada relasi
-            ->orderBy('tanggal', 'desc')
+            ->orderBy('date', 'desc')
             ->paginate(10);
 
         return view('siswa.absensi.medical', compact('medicalRecords'));

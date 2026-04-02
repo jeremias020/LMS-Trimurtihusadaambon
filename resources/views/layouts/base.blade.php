@@ -40,22 +40,11 @@
 
             <!-- Content Area -->
             <div class="content-area" style="padding: 1.5rem;">
-                <!-- Breadcrumb -->
-                @hasSection('breadcrumb')
-                <nav aria-label="breadcrumb" class="mb-4">
-                    <ol class="breadcrumb bg-transparent p-0">
-                        @yield('breadcrumb')
-                    </ol>
-                </nav>
-                @endif
-
                 <!-- Page Header -->
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div>
-                        <h1 class="h3 mb-0 text-dark fw-bold">@yield('page-title', 'Dashboard')</h1>
-                        @hasSection('page-subtitle')
-                            <p class="text-muted mb-0">@yield('page-subtitle')</p>
-                        @endif
+                        <h1 class="h3 mb-0 fw-bold">@yield('page-title', 'Dashboard')</h1>
+                        <p class="text-muted mb-0">@yield('page-subtitle', '')</p>
                     </div>
                     <div>
                         @yield('page-actions')
@@ -71,7 +60,7 @@
         </div>
 
         <!-- Footer (Outside main-content for consistency) -->
-        @yield('footer')
+        @include('partials.footer')
     </div>
 
     <!-- jQuery -->
@@ -89,20 +78,28 @@
 
     <!-- Base JavaScript -->
     <script src="{{ asset('js/base-layout.js') }}"></script>
-    
+    <script src="{{ asset('js/notifications.js') }}" defer></script>
+
     @stack('js')
 
     <script>
+        // Setup CSRF token for all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         $(document).ready(function() {
             // Enhanced Sidebar toggle functionality for new admin sidebar
             $('#sidebarToggle, .sidebar-toggle, #sidebarCollapse, #mobileSidebarToggle').on('click', function(e) {
                 e.preventDefault();
-                
+
                 // Handle new sidebar structure
                 if ($('.sidebar-wrapper').length) {
                     $('.sidebar-wrapper').toggleClass('collapsed');
                     $('#main-content, .main-content').toggleClass('sidebar-collapsed');
-                    
+
                     // Update toggle icon for new structure
                     const icon = $(this).find('i');
                     const isCollapsed = $('.sidebar-wrapper').hasClass('collapsed');
@@ -111,23 +108,23 @@
                     } else {
                         icon.removeClass('fa-arrow-right').addClass('fa-bars');
                     }
-                    
+
                     localStorage.setItem('admin-sidebar-collapsed', isCollapsed);
                 } else {
                     // Fallback for old sidebar structure
                     $('.sidebar').toggleClass('collapsed');
                     $('.main-content').toggleClass('expanded');
-                    
+
                     const isCollapsed = $('.sidebar').hasClass('collapsed');
                     localStorage.setItem('sidebarCollapsed', isCollapsed);
                 }
-                
+
                 // Animate toggle button
                 $(this).find('i').addClass('fa-spin');
                 setTimeout(() => {
                     $(this).find('i').removeClass('fa-spin');
                 }, 300);
-                
+
                 // Trigger resize for charts
                 setTimeout(() => {
                     window.dispatchEvent(new Event('resize'));

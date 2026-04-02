@@ -176,7 +176,7 @@
                 <div class="mb-3">
                     <small class="text-muted d-block">
                         <i class="fas fa-user me-1"></i>
-                        Oleh: {{ $material->guru->name ?? $material->teacher->name ?? 'Unknown Teacher' }}
+                        Oleh: {{ $material->guru?->name ?? $material->teacher?->name ?? 'Unknown Teacher' }}
                     </small>
                 </div>
                 
@@ -184,7 +184,7 @@
                 <div class="mb-3">
                     <span class="badge bg-primary me-1 mb-1">
                         <i class="fas fa-book me-1"></i>
-                        {{ $material->subject->nama ?? $material->subject->name ?? 'Subject' }}
+                        {{ $material->subject?->nama ?? $material->subject?->name ?? 'Subject' }}
                     </span>
                     <span class="badge bg-info mb-1">
                         <i class="fas fa-tag me-1"></i>
@@ -209,7 +209,7 @@
                 <div class="mt-2">
                     <small class="text-success">
                         <i class="fas fa-check-circle me-1"></i>
-                        Sudah diunduh pada {{ $material->downloads->where('siswa_id', Auth::id())->first()->downloaded_at->format('d M Y H:i') }}
+                        Sudah diunduh pada {{ optional($material->downloads->where('siswa_id', Auth::id())->first())->downloaded_at?->format('d M Y H:i') ?? '-' }}
                     </small>
                 </div>
                 @endif

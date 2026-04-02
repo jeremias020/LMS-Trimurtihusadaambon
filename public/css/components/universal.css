@@ -141,28 +141,21 @@ body.admin-layout .sidebar-wrapper {
 
 .text-gray-800 {
     color: var(--gray-800) !important;
-}
-
-.text-gray-900 {
-    color: var(--gray-900) !important;
-}
-
 /* Main Content Layout - Admin Override */
 body.admin-layout #content,
 body.admin-layout .main-content,
 body.admin-layout #main-content {
-    margin-left: 350px !important;
+    margin-left: 280px !important;
     transition: all 0.3s ease !important;
     min-height: 100vh !important;
     display: flex !important;
     flex-direction: column !important;
-    width: calc(100% - 350px) !important;
+    width: calc(100% - 280px) !important;
 }
 
 /* Legacy main content support */
 #content {
     margin-left: 250px;
-    transition: all 0.3s ease;
     min-height: 100vh;
     display: flex;
     flex-direction: column;

@@ -35,13 +35,11 @@ class MaterialController extends Controller
             ->where('guru_id', Auth::id())
             ->latest()
             ->paginate(12);
-
-        $totalSize = Material::where('guru_id', Auth::id())->sum('file_size');
         
         // Get subjects for filter dropdown
         $subjects = Subject::where('is_active', true)->get();
 
-        return view('guru.materials.index', compact('materials', 'totalSize', 'subjects'));
+        return view('guru.materials.index', compact('materials', 'subjects'));
     }
 
     /**
@@ -49,16 +47,26 @@ class MaterialController extends Controller
      */
     public function create(): View
     {
-        $subjects = Subject::where('is_active', true)->get();
-        $categories = [
-            'Teori' => 'Teori',
-            'Praktik' => 'Praktik', 
-            'Tugas' => 'Tugas',
-            'Ujian' => 'Ujian',
-            'Referensi' => 'Referensi'
-        ];
+        $guruId = Auth::id();
+        
+        // Get subjects assigned to this guru
+        $classSubjects = \DB::table('class_subjects')
+            ->join('subjects', 'class_subjects.subject_id', '=', 'subjects.id')
+            ->where('subjects.is_active', true)
+            ->where('class_subjects.teacher_id', $guruId)
+            ->select('class_subjects.id', 'subjects.name as subject_name', 'class_subjects.class_id')
+            ->get();
+        
+        // Get classes where this guru teaches
+        $classes = \DB::table('classes')
+            ->join('class_subjects', 'classes.id', '=', 'class_subjects.class_id')
+            ->where('class_subjects.teacher_id', $guruId)
+            ->distinct()
+            ->select('classes.id', 'classes.name')
+            ->orderBy('classes.name')
+            ->get();
 
-        return view('guru.materials.create', compact('subjects', 'categories'));
+        return view('guru.materials.create', compact('classSubjects', 'classes'));
     }
 
     /**
@@ -68,11 +76,9 @@ class MaterialController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
-            'subject_id' => 'required|exists:subjects,id',
-            'category' => 'required|in:Teori,Praktik,Tugas,Ujian,Referensi',
+            'subject_id' => 'required|exists:class_subjects,id',
             'file' => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,mp4,avi,mov,jpg,jpeg,png|max:51200',
             'description' => 'nullable|string',
-            'is_published' => 'boolean',
         ], [
             'file.mimes' => 'Format file harus: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, zip, rar, mp4, avi, mov, jpg, jpeg, png',
             'file.max' => 'Ukuran file maksimal 50MB',
@@ -89,11 +95,10 @@ class MaterialController extends Controller
         try {
             $material = new Material();
             $material->guru_id = Auth::id();
-            $material->judul = $request->judul;
-            $material->subject_id = $request->subject_id;
-            $material->category = $request->category;
-            $material->description = $request->description;
-            $material->is_published = $request->has('is_published');
+            $material->title = $request->judul;
+            $material->class_subject_id = $request->subject_id;
+            $material->content = $request->description;
+            $material->published_at = $request->has('is_published') ? now() : null;
 
             if ($request->hasFile('file')) {
                 $fileData = $this->handleFileUpload($request->file('file'));
@@ -183,11 +188,9 @@ class MaterialController extends Controller
 
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
-            'subject_id' => 'required|exists:subjects,id',
-            'category' => 'required|in:Teori,Praktik,Tugas,Ujian,Referensi',
+            'subject_id' => 'required|exists:class_subjects,id',
             'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,rar,mp4,avi,mov,jpg,jpeg,png|max:51200',
             'description' => 'nullable|string',
-            'is_published' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -197,11 +200,10 @@ class MaterialController extends Controller
         }
 
         try {
-            $material->judul = $request->judul;
-            $material->subject_id = $request->subject_id;
-            $material->category = $request->category;
-            $material->description = $request->description;
-            $material->is_published = $request->has('is_published');
+            $material->title = $request->judul;
+            $material->class_subject_id = $request->subject_id;
+            $material->content = $request->description;
+            $material->published_at = $request->has('is_published') ? now() : null;
 
             if ($request->hasFile('file')) {
                 $fileData = $this->handleFileUpload($request->file('file'), $material->file);
@@ -523,11 +525,7 @@ class MaterialController extends Controller
         $path = $file->storeAs('materials', $filename, 'public');
 
         return [
-            'file' => $filename,
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'file_type' => $extension,
-            'mime_type' => $file->getMimeType(),
+            'file_url' => $filename,
         ];
     }
 }

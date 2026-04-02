@@ -90,15 +90,12 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="session" class="form-label">Sesi *</label>
-                                <select name="session" id="session" class="form-select" required autocomplete="off">
-                                    <option value="">Pilih Sesi</option>
-                                    <option value="1" {{ old('session') == '1' ? 'selected' : '' }}>Sesi 1 (07:00 - 09:00)</option>
-                                    <option value="2" {{ old('session') == '2' ? 'selected' : '' }}>Sesi 2 (09:00 - 11:00)</option>
-                                    <option value="3" {{ old('session') == '3' ? 'selected' : '' }}>Sesi 3 (11:00 - 13:00)</option>
-                                    <option value="4" {{ old('session') == '4' ? 'selected' : '' }}>Sesi 4 (13:00 - 15:00)</option>
+                                <label for="type" class="form-label">Tipe Absensi *</label>
+                                <select name="type" id="type" class="form-select" required>
+                                    <option value="regular" {{ old('type', 'regular') == 'regular' ? 'selected' : '' }}>Regular</option>
+                                    <option value="praktik" {{ old('type') == 'praktik' ? 'selected' : '' }}>Praktik</option>
                                 </select>
-                                @error('session')
+                                @error('type')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -112,10 +109,32 @@
                             Data Kehadiran Siswa
                         </h5>
 
+                        <!-- Attendance Info Header -->
+                        <div class="alert alert-primary mb-4">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>Mata Pelajaran:</strong><br>
+                                    <span id="selectedSubjectName">-</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Kelas:</strong><br>
+                                    <span id="selectedClassName">-</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Tanggal:</strong><br>
+                                    <span id="selectedDate">-</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Total Siswa:</strong><br>
+                                    <span id="totalStudents" class="fw-bold">0</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="alert alert-info d-flex align-items-center justify-content-between mb-4">
                             <span class="small">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Total siswa: <span id="totalStudents" class="fw-bold">0</span>
+                                Gunakan tombol di bawah untuk mengatur status semua siswa
                             </span>
                             <div class="btn-group btn-group-sm">
                                 <button type="button" onclick="markAll('hadir')"
@@ -180,6 +199,13 @@
 
 @push('js')
 <script>
+    // Students data from controller
+    const studentsData = @json($siswas ?? []);
+    
+    // Debug: Log students data
+    console.log('Students Data:', studentsData);
+    console.log('Students Count:', studentsData.length);
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Set maximum date to today
         const today = new Date().toISOString().split('T')[0];
@@ -197,14 +223,21 @@
     function loadStudents() {
         const subjectId = document.getElementById('subject_id').value;
         const classValue = document.getElementById('class').value;
+        const dateValue = document.getElementById('date').value;
         const studentsSection = document.getElementById('studentsSection');
         const submitButton = document.getElementById('submitButton');
 
-        if (!subjectId || !classValue) {
+        console.log('Loading students for class:', classValue);
+        console.log('Available students:', studentsData.length);
+
+        if (!classValue) {
             studentsSection.style.display = 'none';
             submitButton.disabled = true;
             return;
         }
+
+        // Update header information
+        updateAttendanceHeader(subjectId, classValue, dateValue);
 
         // Show loading state
         studentsSection.style.display = 'block';
@@ -221,26 +254,50 @@
             </tr>
         `;
 
-        // Fetch students from server
-        fetch(`/api/students?subject_id=${subjectId}&class=${classValue}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.students) {
-                    renderStudentsList(data.students);
-                    submitButton.disabled = false;
-                } else {
-                    showError('Gagal memuat data siswa: ' + (data.message || 'Data tidak tersedia'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError('Terjadi kesalahan saat memuat: ' + error.message);
+        // Filter students from existing data
+        setTimeout(() => {
+            const filteredStudents = studentsData.filter(student => {
+                console.log('Checking student:', student.name, 'class_id:', student.class_id, 'kelas:', student.kelas);
+                return student.class_id == classValue || student.kelas?.id == classValue;
             });
+
+            console.log('Filtered students:', filteredStudents.length);
+            console.log('Filtered students data:', filteredStudents);
+
+            if (filteredStudents.length > 0) {
+                renderStudentsList(filteredStudents);
+                submitButton.disabled = false;
+            } else {
+                showError('Tidak ada siswa di kelas yang dipilih');
+            }
+        }, 300);
+    }
+
+    function updateAttendanceHeader(subjectId, classValue, dateValue) {
+        // Get subject name
+        const subjectSelect = document.getElementById('subject_id');
+        const subjectName = subjectSelect.options[subjectSelect.selectedIndex]?.text || '-';
+        
+        // Get class name
+        const classSelect = document.getElementById('class');
+        const className = classSelect.options[classSelect.selectedIndex]?.text || '-';
+        
+        // Format date
+        let formattedDate = '-';
+        if (dateValue) {
+            const date = new Date(dateValue);
+            formattedDate = date.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Update header elements
+        document.getElementById('selectedSubjectName').textContent = subjectName;
+        document.getElementById('selectedClassName').textContent = className;
+        document.getElementById('selectedDate').textContent = formattedDate;
     }
 
     function renderStudentsList(students) {
@@ -269,10 +326,18 @@
         const form = document.getElementById('attendanceForm');
         const oldData = JSON.parse(form.getAttribute('data-old-data') || '[]');
 
+        // Get current time for default time input
+        const currentTime = new Date().toTimeString().slice(0, 5);
+
         students.forEach((student, index) => {
             const oldStatus = oldData[`attendances`]?.[index]?.['status'] || 'hadir';
-            const oldTime = oldData[`attendances`]?.[index]?.['time'] || '';
-            const oldNotes = oldData[`attendances`]?.[index]?.['notes'] || '';
+            const oldTime = oldData[`attendances`]?.[index]?.['waktu_masuk'] || currentTime;
+            const oldNotes = oldData[`attendances`]?.[index]?.['keterangan'] || '';
+
+            // Get NIS from student data or use default
+            const nis = student.nis_nip || student.nis || 'N/A';
+            const photoUrl = student.avatar || student.photo_url || '/images/default-avatar.png';
+            const className = student.kelas?.name || 'Kelas ' + (student.class_id || '-');
 
             html += `
                 <tr>
@@ -281,22 +346,23 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0 me-3">
                                 <img class="avatar rounded-circle"
-                                     src="${student.photo_url || '/images/default-avatar.png'}"
+                                     src="${photoUrl}"
                                      alt="${student.name}"
                                      onerror="this.src='/images/default-avatar.png'">
                             </div>
                             <div>
                                 <div class="fw-medium">${student.name}</div>
+                                <small class="text-muted">${className}</small>
                             </div>
                         </div>
                     </td>
-                    <td><span class="small">${student.nis || 'N/A'}</span></td>
+                    <td><span class="small">${nis}</span></td>
                     <td>
                         <select name="attendances[${index}][status]" class="form-select form-select-sm"
                                 onchange="toggleTimeField(this, ${index})" required>
-                            <option value="hadir" ${oldStatus === 'hadir' ? 'selected' : ''}>Hadir</option>
-                            <option value="izin" ${oldStatus === 'izin' ? 'selected' : ''}>Izin</option>
-                            <option value="sakit" ${oldStatus === 'sakit' ? 'selected' : ''}>Sakit</option>
+                            <option value="present" ${oldStatus === 'present' ? 'selected' : ''}>Hadir</option>
+                            <option value="sick" ${oldStatus === 'sick' ? 'selected' : ''}>Sakit</option>
+                            <option value="permission" ${oldStatus === 'permission' ? 'selected' : ''}>Izin</option>
                             <option value="alpha" ${oldStatus === 'alpha' ? 'selected' : ''}>Alpha</option>
                         </select>
                     </td>
@@ -304,7 +370,7 @@
                         <input type="time" name="attendances[${index}][waktu_masuk]"
                                class="form-control form-control-sm time-field-${index}"
                                value="${oldTime}"
-                               ${oldStatus !== 'hadir' ? 'disabled' : ''}>
+                               ${oldStatus !== 'present' ? 'disabled' : ''}>
                     </td>
                     <td>
                         <input type="text" name="attendances[${index}][keterangan]"
@@ -324,7 +390,7 @@
         const timeField = document.querySelector(`.time-field-${index}`);
         const status = selectElement.value;
 
-        if (status === 'hadir') {
+        if (status === 'present') {
             timeField.disabled = false;
             timeField.required = true;
         } else {

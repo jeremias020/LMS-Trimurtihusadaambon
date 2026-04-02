@@ -1,4 +1,4 @@
-@extends('layouts.siswa')
+@extends('siswa.layouts.siswa-layout')
 
 @section('title', 'Absensi - LMS Trimurti Husada')
 
@@ -10,6 +10,15 @@
         </div>
     </div>
 
+    @php
+        $attendancePercentage = $monthlyStats['attendance_rate'] ?? ($monthlyStats['percentage'] ?? 0);
+        $breakdown = $monthlyStats['breakdown'] ?? collect();
+        $hadirCount = optional($breakdown->where('status', 'hadir')->first())->count ?? 0;
+        $izinCount = optional($breakdown->where('status', 'izin')->first())->count ?? 0;
+        $sakitCount = optional($breakdown->where('status', 'sakit')->first())->count ?? 0;
+        $alpaCount = optional($breakdown->where('status', 'alpha')->first())->count ?? 0;
+    @endphp
+
     <div class="row mb-3">
         <div class="col-md-4">
             <form action="{{ route('siswa.absensi.index') }}" method="GET" class="row g-3">
@@ -17,7 +26,7 @@
                     <label for="month" class="form-label">Bulan</label>
                     <select class="form-control" id="month" name="month" aria-label="Pilih bulan">
                         @for($i = 1; $i <= 12; $i++)
-                            <option value="{{ $i }}" {{ $i == $selectedMonth ? 'selected' : '' }}>
+                            <option value="{{ $i }}" {{ $i == ($month ?? now()->month) ? 'selected' : '' }}>
                                 {{ DateTime::createFromFormat('!m', $i)->format('F') }}
                             </option>
                         @endfor
@@ -27,7 +36,7 @@
                     <label for="year" class="form-label">Tahun</label>
                     <select class="form-control" id="year" name="year" aria-label="Pilih tahun">
                         @for($i = date('Y'); $i >= date('Y') - 5; $i--)
-                            <option value="{{ $i }}" {{ $i == $selectedYear ? 'selected' : '' }}>
+                            <option value="{{ $i }}" {{ $i == ($year ?? now()->year) ? 'selected' : '' }}>
                                 {{ $i }}
                             </option>
                         @endfor
@@ -52,13 +61,13 @@
         </div>
         <div class="col-md-4 d-flex align-items-end">
             <div class="btn-group w-100" role="group">
-                <a href="{{ route('siswa.absensi.export', ['format' => 'pdf', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
+                <a href="{{ route('siswa.absensi.export', ['month' => $month, 'year' => $year]) }}"
                    class="btn btn-danger flex-grow-1 export-btn"
                    title="Export ke PDF"
                    data-format="pdf">
                     <i class="fas fa-file-pdf me-1"></i> Export PDF
                 </a>
-                <a href="{{ route('siswa.absensi.export', ['format' => 'excel', 'month' => $selectedMonth, 'year' => $selectedYear]) }}"
+                <a href="{{ route('siswa.absensi.export', ['month' => $month, 'year' => $year]) }}"
                    class="btn btn-success flex-grow-1 export-btn"
                    title="Export ke Excel"
                    data-format="excel">
@@ -86,8 +95,8 @@
                             <tbody>
                                 @forelse($attendances as $attendance)
                                     <tr>
-                                        <td>{{ $attendance->date->format('d M Y') }}</td>
-                                        <td>{{ $attendance->subject }}</td>
+                                        <td>{{ $attendance->tanggal?->format('d M Y') ?? '-' }}</td>
+                                        <td>{{ $attendance->subject?->name ?? '-' }}</td>
                                         <td>
                                             @if($attendance->status == 'hadir')
                                                 <span class="badge bg-success">Hadir</span>
@@ -101,12 +110,12 @@
                                         </td>
                                         <td>
                                             @if($attendance->status == 'hadir')
-                                                {{ $attendance->check_in }} - {{ $attendance->check_out ?? '-' }}
+                                                {{ $attendance->waktu_masuk ?? '-' }} - {{ $attendance->waktu_keluar ?? '-' }}
                                             @else
                                                 -
                                             @endif
                                         </td>
-                                        <td>{{ $attendance->notes ?? '-' }}</td>
+                                        <td>{{ $attendance->keterangan ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -147,20 +156,20 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <span class="badge bg-success p-2">Hadir: {{ $summary['hadir'] }}</span>
+                        <span class="badge bg-success p-2">Hadir: {{ $hadirCount }}</span>
                     </div>
                     <div class="mb-3">
-                        <span class="badge bg-info p-2">Izin: {{ $summary['izin'] }}</span>
+                        <span class="badge bg-info p-2">Izin: {{ $izinCount }}</span>
                     </div>
                     <div class="mb-3">
-                        <span class="badge bg-warning p-2">Sakit: {{ $summary['sakit'] }}</span>
+                        <span class="badge bg-warning p-2">Sakit: {{ $sakitCount }}</span>
                     </div>
                     <div class="mb-3">
-                        <span class="badge bg-danger p-2">Alpa: {{ $summary['alpa'] }}</span>
+                        <span class="badge bg-danger p-2">Alpa: {{ $alpaCount }}</span>
                     </div>
                     <hr>
                     <div class="text-center">
-                        <h5>Total: {{ $summary['total'] }}</h5>
+                        <h5>Total: {{ $monthlyStats['total'] ?? ($hadirCount + $izinCount + $sakitCount + $alpaCount) }}</h5>
                     </div>
                 </div>
             </div>
@@ -197,12 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Chart
     const ctx = document.getElementById('attendanceChart');
     if (ctx && window.Chart) {
-        const chartData = @json([
-            $summary['hadir'],
-            $summary['izin'],
-            $summary['sakit'],
-            $summary['alpa']
-        ]);
+        const chartData = {!! json_encode([
+            $hadirCount,
+            $izinCount,
+            $sakitCount,
+            $alpaCount,
+        ]) !!};
 
         const attendanceChart = new Chart(ctx, {
             type: 'bar',
@@ -245,4 +254,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-@endsection
+ 

@@ -47,7 +47,7 @@
     </div>
 @endif
 
-@if($errors->any())
+@if(isset($errors) && $errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <div class="d-flex align-items-start">
             <i class="fas fa-exclamation-triangle me-3 text-danger fs-5 mt-1"></i>

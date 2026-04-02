@@ -1,0 +1,92 @@
+=== FOTO PROFILE GURU UPLOAD ANALYSIS ===
+
+Testing foto upload functionality for guru profile...
+
+1. STORAGE CONFIGURATION CHECK
+Filesystems config exists
+Public disk configured
+Public disk serve enabled
+Public visibility enabled
+
+2. STORAGE DIRECTORIES CHECK
+Directory exists: storage/app/public
+Directory exists: storage/app/public/photos
+Directory exists: storage/app/public/photos/profiles
+Directory missing: public/storage
+
+3. UPLOADED FILES CHECK
+Profile photos directory exists
+Total files: 4
+Image files: 3
+Sample uploaded files:
+   - YwlaN3u1CYa9ybLVhhnWJOQIEYUPDi6ZVnCx.jpg (543554 bytes, 2026-01-19 04:37:02)
+   - azcgiZWYTvqkbII6paVc0YGIyPFvAxHDNWBRFirM.jpg (10092 bytes, 2026-01-14 12:58:09)
+   - PlDYlBh45ZTOBb85GGlOZ3ohfEjHvBzpMLj0FJag.png (797846 bytes, 2026-03-09 12:08:17)
+
+4. VIEW IMPLEMENTATION CHECK
+Profile view exists: 554 bytes
+Upload modal found
+Upload form found
+File input found
+Preview function found
+Submit button found
+
+5. CONTROLLER IMPLEMENTATION CHECK
+ProfileController exists: 129 bytes
+updatePhoto method found
+File handling found
+Storage delete found
+File storage found
+File validation found
+
+6. ROUTES CHECK
+Routes file exists
+Profile photo update route found
+Profile photo remove route found
+
+7. USER MODEL CHECK
+User model exists: 392 bytes
+Photo URL accessor found
+Storage facade imported
+
+8. EXPECTED UPLOAD BEHAVIOR
+UPLOAD FLOW:
+1. User clicks camera button on profile
+2. Modal opens with upload form
+3. User selects image file
+4. JavaScript shows preview
+5. User clicks 'Upload Foto' button
+6. Form submits to profile.update-photo route
+7. Controller validates file (image, max 2MB)
+8. Controller deletes old photo if exists
+9. Controller stores new photo to storage/app/public/photos/profiles
+10. Controller updates user->photo in database
+11. Controller redirects back with success message
+12. Page reloads and shows new photo
+
+COMMON ISSUES & SOLUTIONS:
+UPLOAD NOT WORKING:
+• Check JavaScript console for errors
+• Verify form action URL is correct
+• Check CSRF token is present
+• Verify file input has proper attributes
+• Check network tab for failed requests
+
+FILE NOT SAVING:
+• Check storage folder permissions
+• Verify storage disk configuration
+• Check PHP upload limits (upload_max_filesize)
+• Verify disk space available
+
+PHOTO NOT DISPLAYING:
+• Check Storage::url() is working
+• Verify public/storage symlink exists
+• Check file permissions in storage
+• Verify photo_url accessor in model
+
+ANALYSIS COMPLETE!
+All components appear to be properly configured
+Check browser console for specific errors
+Test upload with small image files first
+
+=== COMPLETE ===

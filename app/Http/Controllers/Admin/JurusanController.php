@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Jurusan;
+use App\Models\MataPelajaran;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -21,7 +22,7 @@ class JurusanController extends Controller
     public function index(): View
     {
         $jurusan = Jurusan::withCount(['kelas', 'siswa'])
-                          ->orderBy('nama')
+                          ->orderBy('name')
                           ->get();
                           
         return view('admin.jurusan.index', compact('jurusan'));
@@ -32,7 +33,8 @@ class JurusanController extends Controller
      */
     public function create(): View
     {
-        return view('admin.jurusan.create');
+        $subjects = MataPelajaran::orderBy('name')->get();
+        return view('admin.jurusan.create', compact('subjects'));
     }
 
     /**
@@ -41,11 +43,11 @@ class JurusanController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255|unique:jurusan,nama',
-            'kode' => 'required|string|max:10|unique:jurusan,kode',
+            'nama' => 'required|string|max:255|unique:jurusans,name',
+            'kode' => 'required|string|max:10|unique:jurusans,code',
             'deskripsi' => 'nullable|string',
             'mata_pelajaran' => 'required|array|min:1',
-            'mata_pelajaran.*' => 'required|string|max:255',
+            'mata_pelajaran.*' => 'required|integer|exists:subjects,id',
             'kapasitas_total' => 'nullable|integer|min:1',
             'status' => 'boolean'
         ]);
@@ -53,7 +55,20 @@ class JurusanController extends Controller
         // Clean mata pelajaran array
         $validated['mata_pelajaran'] = array_filter($validated['mata_pelajaran']);
         
-        Jurusan::create($validated);
+        // Only use fields that exist in majors table
+        $jurusanData = [
+            'name' => $validated['nama'],
+            'code' => $validated['kode'],
+            'description' => $validated['deskripsi'] ?? null
+        ];
+        
+        Jurusan::create($jurusanData);
+
+        // If coming from Add User page, go back there
+        if ($request->filled('return_to')) {
+            return redirect($request->input('return_to'))
+                ->with('success', 'Jurusan berhasil ditambahkan.');
+        }
 
         return redirect()
             ->route('admin.jurusan.index')
@@ -75,7 +90,8 @@ class JurusanController extends Controller
      */
     public function edit(Jurusan $jurusan): View
     {
-        return view('admin.jurusan.edit', compact('jurusan'));
+        $subjects = MataPelajaran::orderBy('name')->get();
+        return view('admin.jurusan.edit', compact('jurusan', 'subjects'));
     }
 
     /**
@@ -84,11 +100,11 @@ class JurusanController extends Controller
     public function update(Request $request, Jurusan $jurusan): RedirectResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255|unique:jurusan,nama,' . $jurusan->id,
-            'kode' => 'required|string|max:10|unique:jurusan,kode,' . $jurusan->id,
+            'nama' => 'required|string|max:255|unique:majors,name,' . $jurusan->id,
+            'kode' => 'required|string|max:10|unique:majors,code,' . $jurusan->id,
             'deskripsi' => 'nullable|string',
             'mata_pelajaran' => 'required|array|min:1',
-            'mata_pelajaran.*' => 'required|string|max:255',
+            'mata_pelajaran.*' => 'required|integer|exists:subjects,id',
             'kapasitas_total' => 'nullable|integer|min:1',
             'status' => 'boolean'
         ]);
@@ -96,7 +112,14 @@ class JurusanController extends Controller
         // Clean mata pelajaran array
         $validated['mata_pelajaran'] = array_filter($validated['mata_pelajaran']);
         
-        $jurusan->update($validated);
+        // Only use fields that exist in majors table
+        $jurusanData = [
+            'name' => $validated['nama'],
+            'code' => $validated['kode'],
+            'description' => $validated['deskripsi'] ?? null
+        ];
+        
+        $jurusan->update($jurusanData);
 
         return redirect()
             ->route('admin.jurusan.index')

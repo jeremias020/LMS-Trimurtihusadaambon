@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateProfileRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -32,14 +33,26 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         try {
-            $user->update($request->only([
+            $data = $request->only([
                 'name',
                 'email',
                 'phone',
                 'address',
                 'birth_date',
                 'gender',
-            ]));
+            ]);
+
+            if ($request->hasFile('photo')) {
+                // Hapus foto lama jika ada
+                if (!empty($user->photo) && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+
+                $path = $request->file('photo')->store('photos', 'public');
+                $data['photo'] = $path;
+            }
+
+            $user->update($data);
 
             return redirect()->back()->with('success', 'Profil berhasil diperbarui.');
         } catch (\Exception $e) {

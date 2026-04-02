@@ -13,7 +13,7 @@ class ScheduledNotification extends Model
     protected $table = 'scheduled_notifications';
 
     protected $fillable = [
-        'jadwal_ujian_id',
+        'exam_schedule_id',
         'notification_type',
         'scheduled_at',
         'sent_at',
@@ -40,11 +40,19 @@ class ScheduledNotification extends Model
     ];
 
     /**
-     * Relationship dengan jadwal ujian
+     * Relationship dengan exam schedule
+     */
+    public function examSchedule(): BelongsTo
+    {
+        return $this->belongsTo(ExamSchedule::class);
+    }
+
+    /**
+     * Alias for backward compatibility
      */
     public function jadwalUjian(): BelongsTo
     {
-        return $this->belongsTo(JadwalUjian::class);
+        return $this->examSchedule();
     }
 
     /**
@@ -94,12 +102,12 @@ class ScheduledNotification extends Model
      */
     public function generateNotificationMessage()
     {
-        $jadwal = $this->jadwalUjian;
+        $schedule = $this->examSchedule;
         $messages = [
-            self::TYPE_H7 => "📅 Reminder: Ujian {$jadwal->mata_pelajaran} akan dilaksanakan dalam 7 hari pada {$jadwal->date_time}. Persiapkan diri dengan baik!",
-            self::TYPE_H3 => "⏰ Reminder: Ujian {$jadwal->mata_pelajaran} tinggal 3 hari lagi pada {$jadwal->date_time}. Jangan lupa untuk belajar dan review materi.",
-            self::TYPE_H1 => "🚨 Important: Besok ujian {$jadwal->mata_pelajaran} pada {$jadwal->date_time}. Pastikan Anda sudah siap dan datang tepat waktu!",
-            self::TYPE_H0 => "📝 Hari ini ujian {$jadwal->mata_pelajaran} pada {$jadwal->date_time} di {$jadwal->ruangan}. Good luck!"
+            self::TYPE_H7 => "📅 Reminder: Jadwal {$schedule->subject->nama} akan dilaksanakan dalam 7 hari pada {$schedule->start_time->format('d M Y H:i')}. Persiapkan diri dengan baik!",
+            self::TYPE_H3 => "⏰ Reminder: Jadwal {$schedule->subject->nama} tinggal 3 hari lagi pada {$schedule->start_time->format('d M Y H:i')}. Jangan lupa untuk belajar dan review materi.",
+            self::TYPE_H1 => "🚨 Important: Besok jadwal {$schedule->subject->nama} pada {$schedule->start_time->format('d M Y H:i')}. Pastikan Anda sudah siap dan datang tepat waktu!",
+            self::TYPE_H0 => "📝 Hari ini jadwal {$schedule->subject->nama} pada {$schedule->start_time->format('d M Y H:i')}" . ($schedule->location ? " di {$schedule->location}" : "") . ". Good luck!"
         ];
 
         return $messages[$this->notification_type] ?? 'Notification message';
@@ -110,12 +118,12 @@ class ScheduledNotification extends Model
      */
     public function generateNotificationTitle()
     {
-        $jadwal = $this->jadwalUjian;
+        $schedule = $this->examSchedule;
         $titles = [
-            self::TYPE_H7 => "Ujian {$jadwal->mata_pelajaran} - H-7",
-            self::TYPE_H3 => "Ujian {$jadwal->mata_pelajaran} - H-3", 
-            self::TYPE_H1 => "Ujian {$jadwal->mata_pelajaran} - Besok",
-            self::TYPE_H0 => "Ujian {$jadwal->mata_pelajaran} - Hari Ini"
+            self::TYPE_H7 => "Jadwal {$schedule->subject->nama} - H-7",
+            self::TYPE_H3 => "Jadwal {$schedule->subject->nama} - H-3", 
+            self::TYPE_H1 => "Jadwal {$schedule->subject->nama} - Besok",
+            self::TYPE_H0 => "Jadwal {$schedule->subject->nama} - Hari Ini"
         ];
 
         return $titles[$this->notification_type] ?? 'Notification';

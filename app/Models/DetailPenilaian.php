@@ -77,6 +77,6 @@ class DetailPenilaian extends Model
      */
     public function getWeightedScoreAttribute()
     {
-        return ($this->skor_persen * $this->kriteria->bobot);
+        return ($this->skor_persen * $this->kriteria->bobot) / 100; // Convert integer bobot to percentage
     }
 }

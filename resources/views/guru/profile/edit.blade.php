@@ -51,11 +51,27 @@
                 </h5>
             </div>
             <div class="card-body text-center">
-                <div class="avatar avatar-xxl bg-primary bg-gradient rounded-circle mx-auto mb-3">
-                    <span class="text-white fs-1 fw-bold">
-                        {{ substr($user->name ?? 'G', 0, 1) }}
-                    </span>
+                <!-- Profile Photo Section -->
+                <div class="position-relative d-inline-block mb-3">
+                    <div class="avatar avatar-xxl rounded-circle mx-auto overflow-hidden border-4 border-white shadow-lg" style="width: 120px; height: 120px;">
+                        @if($user->photo)
+                            <img src="{{ $user->photo_url }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover">
+                        @else
+                            <div class="w-100 h-100 bg-primary bg-gradient d-flex align-items-center justify-content-center">
+                                <span class="text-white fs-1 fw-bold">
+                                    {{ substr($user->name ?? 'G', 0, 1) }}
+                                </span>
+                            </div>
+                        @endif
+                    </div>
+                    <!-- Photo Upload Button -->
+                    <div class="position-absolute bottom-0 end-0">
+                        <button type="button" class="btn btn-primary btn-sm rounded-circle shadow" data-bs-toggle="modal" data-bs-target="#photoUploadModal" style="width: 36px; height: 36px;">
+                            <i class="fas fa-camera fs-6"></i>
+                        </button>
+                    </div>
                 </div>
+                
                 <h5 class="fw-bold text-dark">{{ $user->name ?? 'Nama Belum Diset' }}</h5>
                 <p class="text-muted mb-2">{{ $user->email ?? 'Email Belum Diset' }}</p>
                 <span class="badge bg-success bg-opacity-10 text-success">
@@ -85,13 +101,13 @@
         </div>
     </div>
 
-    <!-- Edit Form -->
-    <div class="col-lg-8 col-md-6 mb-4">
+    <!-- Profile Edit Form -->
+    <div class="col-lg-8 col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-light border-0">
                 <h5 class="card-title mb-0 fw-bold">
                     <i class="fas fa-edit text-primary me-2"></i>
-                    Edit Data Profil
+                    Edit Informasi Profil
                 </h5>
             </div>
             <div class="card-body">
@@ -99,16 +115,14 @@
                     @csrf
                     @method('PUT')
                     
-                    <!-- Basic Information -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label fw-medium">
-                                <i class="fas fa-user text-primary me-1"></i>
-                                Nama Lengkap <span class="text-danger">*</span>
+                                <i class="fas fa-user me-1"></i>
+                                Nama Lengkap
                             </label>
-                            <input type="text" class="form-control form-control-lg border-2 @error('name') is-invalid @enderror" 
-                                   id="name" name="name" value="{{ old('name', $user->name) }}" 
-                                   placeholder="Masukkan nama lengkap" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                   id="name" name="name" value="{{ old('name', $user->name) }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -116,27 +130,25 @@
                         
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label fw-medium">
-                                <i class="fas fa-envelope text-primary me-1"></i>
-                                Email <span class="text-danger">*</span>
+                                <i class="fas fa-envelope me-1"></i>
+                                Email
                             </label>
-                            <input type="email" class="form-control form-control-lg border-2 @error('email') is-invalid @enderror" 
-                                   id="email" name="email" value="{{ old('email', $user->email) }}" 
-                                   placeholder="nama@email.com" required>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                   id="email" name="email" value="{{ old('email', $user->email) }}" required>
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
-
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label fw-medium">
-                                <i class="fas fa-phone text-primary me-1"></i>
+                                <i class="fas fa-phone me-1"></i>
                                 Nomor Telepon
                             </label>
-                            <input type="tel" class="form-control form-control-lg border-2 @error('phone') is-invalid @enderror" 
-                                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}" 
-                                   placeholder="08xxxxxxxxxx">
+                            <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                                   id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -144,12 +156,12 @@
                         
                         <div class="col-md-6 mb-3">
                             <label for="gender" class="form-label fw-medium">
-                                <i class="fas fa-venus-mars text-primary me-1"></i>
+                                <i class="fas fa-venus-mars me-1"></i>
                                 Jenis Kelamin
                             </label>
-                            <select class="form-select form-select-lg border-2 @error('gender') is-invalid @enderror" 
+                            <select class="form-select @error('gender') is-invalid @enderror" 
                                     id="gender" name="gender">
-                                <option value="">Pilih jenis kelamin</option>
+                                <option value="">Pilih Jenis Kelamin</option>
                                 <option value="L" {{ old('gender', $user->gender) == 'L' ? 'selected' : '' }}>Laki-laki</option>
                                 <option value="P" {{ old('gender', $user->gender) == 'P' ? 'selected' : '' }}>Perempuan</option>
                             </select>
@@ -158,38 +170,37 @@
                             @enderror
                         </div>
                     </div>
-
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="birth_date" class="form-label fw-medium">
-                                <i class="fas fa-birthday-cake text-primary me-1"></i>
+                                <i class="fas fa-calendar me-1"></i>
                                 Tanggal Lahir
                             </label>
-                            <input type="date" class="form-control form-control-lg border-2 @error('birth_date') is-invalid @enderror" 
+                            <input type="date" class="form-control @error('birth_date') is-invalid @enderror" 
                                    id="birth_date" name="birth_date" value="{{ old('birth_date', $user->birth_date) }}">
                             @error('birth_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label fw-medium">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                Alamat
+                            </label>
+                            <textarea class="form-control @error('address') is-invalid @enderror" 
+                                      id="address" name="address" rows="1">{{ old('address', $user->address) }}</textarea>
+                            @error('address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="address" class="form-label fw-medium">
-                            <i class="fas fa-map-marker-alt text-primary me-1"></i>
-                            Alamat
-                        </label>
-                        <textarea class="form-control border-2 @error('address') is-invalid @enderror" 
-                                  id="address" name="address" rows="3" 
-                                  placeholder="Masukkan alamat lengkap">{{ old('address', $user->address) }}</textarea>
-                        @error('address')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    
+                    <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
-                            <i class="fas fa-undo me-1"></i> Reset
+                            <i class="fas fa-redo me-1"></i>
+                            Reset
                         </button>
                         <button type="submit" class="btn btn-primary" id="saveBtn">
                             <i class="fas fa-save me-1"></i>
@@ -198,6 +209,90 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photo Upload Modal -->
+<div class="modal fade" id="photoUploadModal" tabindex="-1" aria-labelledby="photoUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="photoUploadModalLabel">
+                    <i class="fas fa-camera me-2"></i>
+                    Upload Foto Profil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('guru.profile.update-photo') }}" method="POST" enctype="multipart/form-data" id="photoUploadForm">
+                    @csrf
+                    <!-- Current Photo Preview -->
+                    <div class="text-center mb-4">
+                        <div class="avatar avatar-xl rounded-circle mx-auto overflow-hidden border-4 border-light shadow" style="width: 100px; height: 100px;">
+                            @if($user->photo)
+                                <img src="{{ $user->photo_url }}" alt="{{ $user->name }}" class="w-100 h-100 object-fit-cover" id="currentPhotoPreview">
+                            @else
+                                <div class="w-100 h-100 bg-primary bg-gradient d-flex align-items-center justify-content-center">
+                                    <span class="text-white fs-3 fw-bold" id="currentPhotoInitial">
+                                        {{ substr($user->name ?? 'G', 0, 1) }}
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+                        <small class="text-muted d-block mt-2">Foto saat ini</small>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-3">
+                        <label for="photo" class="form-label fw-medium">
+                            <i class="fas fa-image me-1"></i>
+                            Pilih Foto Baru
+                        </label>
+                        <input type="file" class="form-control @error('photo') is-invalid @enderror" 
+                               id="photo" name="photo" accept="image/*" onchange="previewPhoto(event)" required>
+                        @error('photo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Format: JPEG, PNG, JPG, GIF (Maks: 2MB)
+                        </div>
+                    </div>
+
+                    <!-- New Photo Preview -->
+                    <div class="text-center mb-3" id="newPhotoPreviewContainer" style="display: none;">
+                        <div class="avatar avatar-xl rounded-circle mx-auto overflow-hidden border-4 border-success shadow" style="width: 100px; height: 100px;">
+                            <img id="newPhotoPreview" alt="Preview" class="w-100 h-100 object-fit-cover">
+                        </div>
+                        <small class="text-success d-block mt-2">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Preview foto baru
+                        </small>
+                    </div>
+
+                    <!-- Remove Photo Option -->
+                    @if($user->photo)
+                    <div class="mb-3">
+                        <a href="{{ route('guru.profile.remove-photo') }}" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Apakah Anda yakin ingin menghapus foto profil?')">
+                            <i class="fas fa-trash me-1"></i>
+                            Hapus Foto Saat Ini
+                        </a>
+                    </div>
+                    @endif
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Batal
+                </button>
+                <button type="submit" form="photoUploadForm" class="btn btn-primary" id="uploadPhotoBtn">
+                    <i class="fas fa-upload me-1"></i>
+                    <span class="btn-text">Upload Foto</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -217,34 +312,36 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-3 mb-3">
-                            <div class="avatar avatar-md bg-success bg-gradient rounded-circle me-3">
-                                <i class="fas fa-check text-white"></i>
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-check-circle text-success fs-4"></i>
                             </div>
-                            <div>
-                                <div class="fw-medium text-success">Email Terverifikasi</div>
-                                <small class="text-muted">Email Anda sudah terverifikasi</small>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1 fw-bold">Email Terverifikasi</h6>
+                                <small class="text-muted">{{ $user->email }}</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="d-flex align-items-center p-3 bg-info bg-opacity-10 rounded-3 mb-3">
-                            <div class="avatar avatar-md bg-info bg-gradient rounded-circle me-3">
-                                <i class="fas fa-key text-white"></i>
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lock text-info fs-4"></i>
                             </div>
-                            <div>
-                                <div class="fw-medium text-info">Ubah Password</div>
-                                <small class="text-muted">Hubungi administrator untuk mengubah password</small>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1 fw-bold">Password Aman</h6>
+                                <small class="text-muted">Diubah {{ $user->password_changed_at ? \Carbon\Carbon::parse($user->password_changed_at)->diffForHumans() : 'belum pernah' }}</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="alert alert-info d-flex align-items-center">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <div>
-                        <strong>Informasi:</strong> Untuk mengubah password atau pengaturan keamanan lainnya, 
-                        silakan hubungi administrator sistem.
-                    </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('guru.password.change') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-key me-1"></i>
+                        Ubah Password
+                    </a>
+                    <a href="{{ route('guru.2fa.setup') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-mobile-alt me-1"></i>
+                        Pengaturan 2FA
+                    </a>
                 </div>
             </div>
         </div>
@@ -263,6 +360,38 @@ document.getElementById('profileForm').addEventListener('submit', function() {
     spinner.classList.remove('d-none');
     saveBtn.disabled = true;
 });
+
+// Photo upload form submission
+document.getElementById('photoUploadForm').addEventListener('submit', function() {
+    const uploadBtn = document.getElementById('uploadPhotoBtn');
+    const btnText = uploadBtn.querySelector('.btn-text');
+    const spinner = uploadBtn.querySelector('.spinner-border');
+    
+    // Show loading state
+    btnText.textContent = 'Mengupload...';
+    spinner.classList.remove('d-none');
+    uploadBtn.disabled = true;
+});
+
+// Photo preview function
+function previewPhoto(event) {
+    const file = event.target.files[0];
+    const previewContainer = document.getElementById('newPhotoPreviewContainer');
+    const previewImg = document.getElementById('newPhotoPreview');
+    
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewContainer.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(file);
+    } else {
+        previewContainer.style.display = 'none';
+    }
+}
 
 // Reset form function
 function resetForm() {
@@ -297,107 +426,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    function validateField(field) {
-        const value = field.value.trim();
-        
-        // Remove existing validation classes
-        field.classList.remove('is-valid', 'is-invalid');
-        
-        if (field.hasAttribute('required') && value === '') {
-            field.classList.add('is-invalid');
-            return false;
-        }
-        
-        if (field.type === 'email' && value !== '') {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                field.classList.add('is-invalid');
-                return false;
-            }
-        }
-        
-        if (field.type === 'tel' && value !== '') {
-            const phoneRegex = /^[0-9+\-\s()]+$/;
-            if (!phoneRegex.test(value)) {
-                field.classList.add('is-invalid');
-                return false;
-            }
-        }
-        
-        if (value !== '') {
-            field.classList.add('is-valid');
-        }
-        
-        return true;
-    }
 });
-</script>
 
-<style>
-/* Custom CSS for enhanced styling */
-.avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.avatar-md {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1rem;
-}
-
-.avatar-xxl {
-    width: 5rem;
-    height: 5rem;
-    font-size: 2rem;
-}
-
-.card {
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
-}
-
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-
-.form-control.is-valid {
-    border-color: #198754;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.8-.79-.79-.79L1.5 6.12l.8.81z'/%3e%3c/svg%3e");
-}
-
-.form-control.is-invalid {
-    border-color: #dc3545;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4M7.2 7.4 5.8 6'/%3e%3c/svg%3e");
-}
-
-.border-2 {
-    border-width: 2px !important;
-}
-
-.bg-gradient {
-    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info)) !important;
-}
-
-@media (max-width: 768px) {
-    .avatar-xxl {
-        width: 4rem;
-        height: 4rem;
-        font-size: 1.5rem;
+function validateField(field) {
+    const value = field.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+    
+    // Basic validation rules
+    switch(field.id) {
+        case 'name':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'Nama lengkap wajib diisi';
+            } else if (value.length < 3) {
+                isValid = false;
+                errorMessage = 'Nama minimal 3 karakter';
+            }
+            break;
+            
+        case 'email':
+            if (!value) {
+                isValid = false;
+                errorMessage = 'Email wajib diisi';
+            } else if (!/^\S+@\S+\.\S+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'Format email tidak valid';
+            }
+            break;
+            
+        case 'phone':
+            if (value && !/^\+?[\d\s-()]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'Format nomor telepon tidak valid';
+            }
+            break;
     }
     
-    .card-body {
-        padding: 1rem;
+    // Update field validation state
+    if (isValid) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+    } else {
+        field.classList.remove('is-valid');
+        field.classList.add('is-invalid');
+        
+        // Show error message
+        let feedback = field.parentNode.querySelector('.invalid-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            field.parentNode.appendChild(feedback);
+        }
+        feedback.textContent = errorMessage;
     }
 }
-</style>
+</script>
 @endsection

@@ -27,11 +27,24 @@ class MaterialController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Material::where('is_published', true)
+        // Get student's class
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
+        $query = Material::whereNotNull('published_at')
             ->with(['guru', 'subject', 'downloads' => function($query) {
                 $query->where('siswa_id', Auth::id());
             }])
-            ->withCount('downloads');
+            ->withCount('downloads')
+            ->where(function($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id'); // Include materials for all classes
+                } else {
+                    // If no class assigned, show only materials without specific class
+                    $query->whereNull('kelas_id');
+                }
+            });
 
         // Apply search filter
         if ($search = $request->get('search')) {
@@ -61,13 +74,13 @@ class MaterialController extends Controller
             ->distinct('material_id')
             ->count();
 
-        $recentCount = Material::where('is_published', true)
+        $recentCount = Material::whereNotNull('published_at')
             ->where('created_at', '>=', now()->subDays(7))
             ->count();
 
         $favoriteCount = MaterialDownload::where('siswa_id', Auth::id())
             ->whereHas('material', function($q) {
-                $q->where('is_published', true);
+                $q->whereNotNull('published_at');
             })
             ->count();
 
@@ -85,7 +98,19 @@ class MaterialController extends Controller
      */
     public function download($id) // ✅ Hapus return type
     {
-        $material = Material::where('is_published', true)
+        // Get student's class
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
+        $material = Material::whereNotNull('published_at')
+            ->where(function($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
             ->findOrFail($id);
 
         if (!$material->file) {
@@ -119,7 +144,7 @@ class MaterialController extends Controller
 
         $filename = $material->judul . '.' . pathinfo($material->file, PATHINFO_EXTENSION);
 
-        return Storage::download($filePath, $filename);
+        return Storage::disk('public')->download($filePath, $filename);
     }
 
     /**
@@ -127,7 +152,7 @@ class MaterialController extends Controller
      */
     public function trackDownload($id): JsonResponse
     {
-        $material = Material::where('is_published', true)
+        $material = Material::whereNotNull('published_at')
             ->findOrFail($id);
 
         $this->logDownload($material->id);
@@ -147,8 +172,20 @@ class MaterialController extends Controller
      */
     public function show($id): View
     {
-        $material = Material::where('is_published', true)
+        // Get student's class
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
+        $material = Material::whereNotNull('published_at')
             ->with(['guru', 'subject'])
+            ->where(function($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
             ->findOrFail($id);
 
         DB::table('materials')
@@ -204,7 +241,7 @@ class MaterialController extends Controller
      */
     public function getFileInfo($id): JsonResponse
     {
-        $material = Material::where('is_published', true)
+        $material = Material::whereNotNull('published_at')
             ->findOrFail($id);
 
         $filePath = 'materials/' . $material->file;
@@ -241,7 +278,7 @@ class MaterialController extends Controller
      */
     public function healthMaterials(): View
     {
-        $materials = Material::where('is_published', true)
+        $materials = Material::whereNotNull('published_at')
             ->where(function($query) {
                 $query->where('judul', 'like', '%kesehatan%')
                       ->orWhere('judul', 'like', '%medis%')

@@ -1,0 +1,276 @@
+=== GURU EDIT & DELETE ABSENSI - IMPLEMENTED ===
+
+🔍 OBJECTIVE:
+- Membuat agar guru dapat mengedit dan menghapus siswa di manajemen absensi
+- Menambahkan fungsi edit dan delete dengan proper security
+- Memberikan user experience yang baik dengan konfirmasi dialog
+
+✅ COMPREHENSIVE IMPLEMENTATION:
+
+1. EDIT FUNCTIONALITY:
+   ✅ Controller edit method sudah ada dengan proper security
+   ✅ Edit view sudah ada dengan form yang lengkap
+   ✅ Edit button sudah ada di table
+   ✅ Proper validation dan error handling
+
+2. DELETE FUNCTIONALITY:
+   ✅ Controller destroy method sudah ada dengan security check
+   ✅ Tambahkan delete button di table dengan btn-group
+   ✅ Tambahkan modal konfirmasi untuk setiap record
+   ✅ JavaScript untuk handling modal dan loading state
+
+3. SECURITY & AUTHORIZATION:
+   ✅ Double-check ownership (recorded_by === Auth::id())
+   ✅ Policy authorization check
+   ✅ CSRF protection
+   ✅ Proper error handling dan logging
+
+📱 TECHNICAL IMPLEMENTATION:
+
+CONTROLLER METHODS (EXISTING):
+```php
+// Edit Method
+public function edit(Attendance $absensi): View
+{
+    // ✅ Security: Double-check ownership
+    if ($absensi->recorded_by !== Auth::id()) {
+        abort(403, 'Anda tidak diizinkan mengedit absensi ini.');
+    }
+    
+    $this->authorize('update', $absensi);
+    return view('guru.absensi.edit', compact('absensi'));
+}
+
+// Update Method
+public function update(Request $request, Attendance $absensi): RedirectResponse
+{
+    // ✅ Security: Double-check ownership
+    if ($absensi->recorded_by !== Auth::id()) {
+        abort(403, 'Anda tidak diizinkan mengedit absensi ini.');
+    }
+    
+    $this->authorize('update', $absensi);
+    
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|in:hadir,izin,sakit,alpha',
+        'keterangan' => 'nullable|string|max:500',
+        'waktu_masuk' => 'nullable|date_format:H:i',
+        'waktu_keluar' => 'nullable|date_format:H:i|after:waktu_masuk',
+    ]);
+    
+    // ... validation dan update logic
+}
+
+// Destroy Method
+public function destroy(Attendance $absensi): RedirectResponse
+{
+    // ✅ Security: Double-check ownership
+    if ($absensi->recorded_by !== Auth::id()) {
+        abort(403, 'Anda tidak diizinkan menghapus absensi ini.');
+    }
+    
+    $this->authorize('delete', $absensi);
+    
+    try {
+        $absensi->delete();
+        
+        Log::info('Attendance deleted', [
+            'attendance_id' => $absensi->id,
+            'guru_id' => Auth::id(),
+            'ip' => request()->ip()
+        ]);
+        
+        return redirect()->route('guru.absensi.index')
+            ->with('success', 'Absensi berhasil dihapus!');
+            
+    } catch (\Exception $e) {
+        Log::error('Attendance deletion failed: ' . $e->getMessage());
+        
+        return redirect()->route('guru.absensi.index')
+            ->with('error', 'Gagal menghapus absensi. Silakan coba lagi.');
+    }
+}
+```
+
+VIEW ENHANCEMENTS (ADDED):
+
+1. BUTTON GROUP:
+```html
+<td>
+    <div class="btn-group" role="group">
+        <a href="{{ route('guru.absensi.edit', $attendance->id) }}"
+           class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-edit me-1"></i>Edit
+        </a>
+        <button type="button" 
+                class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal" 
+                data-bs-target="#deleteModal{{ $attendance->id }}">
+            <i class="fas fa-trash me-1"></i>Hapus
+        </button>
+    </div>
+</td>
+```
+
+2. DELETE MODAL:
+```html
+<!-- Delete Confirmation Modals -->
+@foreach($attendances as $attendance)
+<div class="modal fade" id="deleteModal{{ $attendance->id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Konfirmasi Hapus
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>
+                        Apakah Anda yakin ingin menghapus data absensi ini?
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Data yang akan dihapus:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Siswa:</strong> {{ $attendance->siswa?->name ?? 'N/A' }}</li>
+                        <li><strong>Tanggal:</strong> {{ $attendance->tanggal?->format('d/m/Y') ?? 'N/A' }}</li>
+                        <li><strong>Status:</strong> {{ $attendance->status ?? 'N/A' }}</li>
+                        <li><strong>Keterangan:</strong> {{ $attendance->keterangan ?? 'Tidak ada' }}</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Batal
+                </button>
+                <form action="{{ route('guru.absensi.destroy', $attendance->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Hapus Data
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+```
+
+3. JAVASCRIPT ENHANCEMENTS:
+```javascript
+// Handle delete form submission
+document.querySelectorAll('form[action*="destroy"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menghapus...';
+        
+        // Form will submit normally
+    });
+});
+
+// Close modal after successful deletion
+window.addEventListener('popstate', function() {
+    // Close any open modals
+    document.querySelectorAll('.modal.show').forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+    });
+});
+```
+
+🔧 SECURITY FEATURES:
+
+1. AUTHORIZATION:
+   ✅ Double-check ownership (recorded_by === Auth::id())
+   ✅ Policy authorization (authorize('update', $absensi))
+   ✅ CSRF protection pada semua forms
+   ✅ Proper HTTP methods (PUT for update, DELETE for destroy)
+
+2. VALIDATION:
+   ✅ Required field validation
+   ✅ Enum validation untuk status
+   ✅ String length validation
+   ✅ Time format validation
+   ✅ Time sequence validation (keluar > masuk)
+
+3. LOGGING:
+   ✅ Success action logging
+   ✅ Error logging dengan context
+   ✅ IP address tracking
+   ✅ User identification
+
+🎯 USER EXPERIENCE:
+
+1. EDIT FLOW:
+   ✅ Click Edit button → Go to edit form
+   ✅ Form populated dengan existing data
+   ✅ Real-time validation
+   ✅ Time field toggle based on status
+   ✅ Success/error feedback
+
+2. DELETE FLOW:
+   ✅ Click Delete button → Show confirmation modal
+   ✅ Display data yang akan dihapus
+   ✅ Warning message tentang permanence
+   ✅ Loading state saat proses
+   ✅ Success/error feedback
+
+3. VISUAL DESIGN:
+   ✅ Button grouping untuk better UX
+   ✅ Color-coded buttons (primary for edit, danger for delete)
+   ✅ Modal dengan proper icons dan warnings
+   ✅ Loading states dengan spinner
+   ✅ Responsive design
+
+🎉 STATUS: FULLY IMPLEMENTED
+
+📱 CAPABILITIES:
+
+✅ EDIT CAPABILITIES:
+- Edit status absensi (hadir, izin, sakit, alpha)
+- Edit keterangan
+- Edit waktu masuk/keluar (untuk status hadir)
+- Proper validation
+- Security checks
+
+✅ DELETE CAPABILITIES:
+- Delete attendance records
+- Confirmation dialog dengan data preview
+- Security authorization
+- Proper error handling
+- Activity logging
+
+✅ SECURITY:
+- Ownership verification
+- Policy authorization
+- CSRF protection
+- Activity logging
+- Error handling
+
+🎉 IMPLEMENTATION COMPLETED!
+
+Guru sekarang dapat:
+1. ✅ Mengedit data absensi siswa dengan form yang lengkap
+2. ✅ Menghapus data absensi dengan konfirmasi dialog
+3. ✅ Melihat preview data sebelum menghapus
+4. ✅ Mendapatkan feedback untuk setiap action
+5. ✅ Melakukan operasi dengan security yang proper
+
+Semua functionality sudah diimplementasikan dengan baik dan siap digunakan!

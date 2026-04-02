@@ -122,7 +122,7 @@
                             <i class="fas fa-calendar-plus mr-1"></i>Dibuat: {{ $assignment->created_at->format('d/m/Y H:i') }}
                         </span>
                         <span class="text-sm text-gray-500">
-                            <i class="fas fa-clock mr-1"></i>Batas: {{ $assignment->due_date->format('d/m/Y H:i') }}
+                            <i class="fas fa-clock mr-1"></i>Batas: {{ $assignment->due_date?->format('d/m/Y H:i') ?? $assignment->deadline?->format('d/m/Y H:i') ?? '-' }}
                         </span>
                     </div>
                     <div class="flex items-center space-x-4 text-sm text-gray-500">
@@ -221,7 +221,7 @@
                     <a href="{{ route('guru.penilaian.index', ['assignment_id' => $assignment->id]) }}" class="btn-primary" title="Lihat daftar pengumpulan">
                         <i class="fas fa-list mr-2"></i>Lihat Pengumpulan
                     </a>
-                    <a href="{{ route('guru.laporan.assignment', $assignment->id) }}" class="btn-secondary" title="Lihat laporan tugas">
+                    <a href="{{ route('guru.laporan.tugas') }}" class="btn-secondary" title="Lihat laporan tugas">
                         <i class="fas fa-chart-bar mr-2"></i>Lihat Laporan
                     </a>
                 </div>

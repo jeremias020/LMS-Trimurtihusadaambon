@@ -24,12 +24,14 @@ class ScoreController extends Controller
     public function index(): View
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class; // ✅ Dapatkan kelas siswa
+        $kelasId = Auth::user()->kelas_id ?? null; // gunakan kelas_id sesuai skema
 
         $practicalScores = PracticalScore::with(['practical', 'criteria'])
             ->where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->latest()
             ->paginate(10);
@@ -37,15 +39,20 @@ class ScoreController extends Controller
         $assignmentScores = AssignmentSubmission::with(['assignment', 'assignment.guru'])
             ->where('siswa_id', $siswaId)
             ->whereNotNull('score')
-            ->whereHas('assignment', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('assignment', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->latest()
             ->paginate(10);
 
-        $stats = $this->calculateStats($siswaId, $siswaClass);
+        $stats = $this->calculateStats($siswaId, $kelasId);
 
-        return view('siswa.nilai.index', compact('practicalScores', 'assignmentScores', 'stats'));
+        // Normalize aggregated scores structure expected by the view
+        $scores = [];
+
+        return view('siswa.nilai.index', compact('practicalScores', 'assignmentScores', 'stats', 'scores'));
     }
 
     /**
@@ -54,13 +61,15 @@ class ScoreController extends Controller
     public function show($id): View
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class;
+        $kelasId = Auth::user()->kelas_id ?? null;
 
         $score = PracticalScore::with(['practical', 'criteria'])
             ->where('id', $id)
             ->where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->firstOrFail();
 
@@ -76,12 +85,14 @@ class ScoreController extends Controller
     public function practicalScores(): View
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class;
+        $kelasId = Auth::user()->kelas_id ?? null;
 
         $scores = PracticalScore::with(['practical', 'criteria'])
             ->where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->latest()
             ->paginate(15);
@@ -98,18 +109,28 @@ class ScoreController extends Controller
     }
 
     /**
+     * Alias for route siswa.reports.practical
+     */
+    public function practical(): View
+    {
+        return $this->practicalScores();
+    }
+
+    /**
      * Display assignment scores.
      */
     public function assignmentScores(): View
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class;
+        $kelasId = Auth::user()->kelas_id ?? null;
 
         $scores = AssignmentSubmission::with(['assignment', 'assignment.guru'])
             ->where('siswa_id', $siswaId)
             ->whereNotNull('score')
-            ->whereHas('assignment', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('assignment', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->latest()
             ->paginate(15);
@@ -125,18 +146,30 @@ class ScoreController extends Controller
         return view('siswa.nilai.assignment', compact('scores', 'stats'));
     }
 
-    protected function calculateStats($siswaId, $siswaClass)
+    /**
+     * Alias for route siswa.reports.assignment
+     */
+    public function assignment(): View
+    {
+        return $this->assignmentScores();
+    }
+
+    protected function calculateStats($siswaId, $kelasId)
     {
         $practicalScores = PracticalScore::where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->get();
 
         $assignmentScores = AssignmentSubmission::where('siswa_id', $siswaId)
             ->whereNotNull('score')
-            ->whereHas('assignment', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('assignment', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->get();
 
@@ -172,23 +205,27 @@ class ScoreController extends Controller
     public function getChartData(): JsonResponse
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class;
+        $kelasId = Auth::user()->kelas_id ?? null;
 
-        $practicalScores = PracticalScore::where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+        $practicalScores = PracticalScore::where('student_id', $siswaId)
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->selectRaw('DATE(created_at) as date, AVG(score) as average_score')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        $assignmentScores = AssignmentSubmission::where('siswa_id', $siswaId)
+        $assignmentScores = AssignmentSubmission::where('student_id', $siswaId)
             ->whereNotNull('score')
-            ->whereHas('assignment', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('assignment', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
-            ->selectRaw('DATE(graded_at) as date, AVG(score) as average_score')
+            ->selectRaw('DATE(created_at) as date, AVG(score) as average_score')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -205,20 +242,24 @@ class ScoreController extends Controller
     public function exportScores(): View
     {
         $siswaId = Auth::id();
-        $siswaClass = Auth::user()->class;
+        $kelasId = Auth::user()->kelas_id ?? null;
 
         $practicalScores = PracticalScore::with(['practical', 'criteria'])
             ->where('siswa_id', $siswaId)
-            ->whereHas('practical', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('practical', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->get();
 
         $assignmentScores = AssignmentSubmission::with(['assignment', 'assignment.guru'])
             ->where('siswa_id', $siswaId)
             ->whereNotNull('score')
-            ->whereHas('assignment', function($query) use ($siswaClass) {
-                $query->where('class', $siswaClass);
+            ->when($kelasId, function($q) use ($kelasId) {
+                $q->whereHas('assignment', function($sub) use ($kelasId) {
+                    $sub->where('kelas_id', $kelasId);
+                });
             })
             ->get();
 

@@ -45,13 +45,13 @@
 
                 <!-- Export Buttons -->
                 <div class="btn-group ms-2">
-                    <a href="{{ route('siswa.assignments.export', ['format' => 'pdf']) }}" 
+                    <a href="{{ route('siswa.assignments.export') }}" 
                        class="btn btn-outline-danger export-btn" 
                        title="Export ke PDF"
                        data-format="pdf">
                         <i class="fas fa-file-pdf"></i>
                     </a>
-                    <a href="{{ route('siswa.assignments.export', ['format' => 'excel']) }}" 
+                    <a href="{{ route('siswa.assignments.export') }}" 
                        class="btn btn-outline-success export-btn" 
                        title="Export ke Excel"
                        data-format="excel">
@@ -83,24 +83,28 @@
                                     <tr>
                                         <td>
                                             {{ $assignment->title }}
-                                            @if($assignment->due_date->diffInHours(now()) <= 24 && $assignment->due_date->isFuture())
+                                            @if($assignment->deadline && $assignment->deadline->diffInHours(now()) <= 24 && $assignment->deadline->isFuture())
                                                 <span class="badge bg-warning text-dark ms-1">Segera</span>
                                             @endif
                                         </td>
-                                        <td>{{ $assignment->subject ?? 'Tidak tersedia' }}</td>
+                                        <td>{{ $assignment->subject?->nama ?? $assignment->subject?->name ?? 'Tidak tersedia' }}</td>
                                         <td>
-                                            <span title="{{ $assignment->due_date->translatedFormat('l, d F Y H:i') }}">
-                                                {{ $assignment->due_date->format('d M Y H:i') }}
-                                            </span>
-                                            @if($assignment->due_date->isPast())
-                                                <span class="badge bg-danger ms-1">Terlambat</span>
-                                            @elseif($assignment->due_date->diffInHours(now()) <= 24)
-                                                <span class="badge bg-warning text-dark ms-1">Segera</span>
+                                            @if($assignment->deadline)
+                                                <span title="{{ $assignment->deadline->translatedFormat('l, d F Y H:i') }}">
+                                                    {{ $assignment->deadline->format('d M Y H:i') }}
+                                                </span>
+                                                @if($assignment->deadline->isPast())
+                                                    <span class="badge bg-danger ms-1">Terlambat</span>
+                                                @elseif($assignment->deadline->diffInHours(now()) <= 24)
+                                                    <span class="badge bg-warning text-dark ms-1">Segera</span>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">Tidak ada deadline</span>
                                             @endif
                                         </td>
                                         <td>
                                             @php
-                                                $submission = $assignment->submissions->where('user_id', Auth::id())->first();
+                                                $submission = $assignment->submissions->where('siswa_id', Auth::id())->first();
                                             @endphp
                                             @if($submission)
                                                 <span class="badge bg-success">Terkumpul</span>
@@ -121,7 +125,7 @@
                                                title="Lihat detail tugas">
                                                 <i class="fas fa-eye"></i> Detail
                                             </a>
-                                            @if(!$submission && $assignment->due_date->isFuture())
+                                            @if(!$submission && ($assignment->deadline?->isFuture() ?? false))
                                                 <a href="{{ route('siswa.assignments.show', $assignment->id) }}#submit" 
                                                    class="btn btn-sm btn-success" 
                                                    title="Kumpulkan tugas">
@@ -181,4 +185,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-@endsection

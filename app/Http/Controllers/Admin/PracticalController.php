@@ -40,7 +40,7 @@ class PracticalController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'guru_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date|after:now',
+            'date' => 'required|date|after:now',
             'lokasi' => 'required|string|max:255',
             'durasi' => 'required|integer|min:1|max:480', // Max 8 hours
             'tools' => 'nullable|string',
@@ -84,7 +84,7 @@ class PracticalController extends Controller
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'guru_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date|after:now',
+            'date' => 'required|date|after:now',
             'lokasi' => 'required|string|max:255',
             'durasi' => 'required|integer|min:1|max:480', // Max 8 hours
             'tools' => 'nullable|string',

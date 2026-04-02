@@ -1,106 +1,162 @@
-<nav id="sidebar" class="sidebar-wrapper bg-dark" role="navigation">
-    <div class="sidebar-content">
-        <div class="sidebar-brand p-3">
-            <a href="{{ route('siswa.dashboard') }}" class="text-white text-decoration-none" title="Dashboard Siswa">
-                <i class="fas fa-user-graduate me-2"></i>
-                <span class="fw-bold">LMS Siswa</span>
-            </a>
-        </div>
-
-        <div class="sidebar-header">
-            <div class="user-pic">
-                <img class="img-responsive img-rounded"
-                     src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.png') }}"
-                     alt="Foto profil {{ Auth::user()->name }}">
+<nav class="sidebar admin-sidebar" id="sidebar">
+    <!-- Brand -->
+    <div class="p-3 border-bottom border-secondary">
+        <a href="{{ route('siswa.dashboard') }}" class="d-flex align-items-center text-white text-decoration-none brand-link">
+            <div class="bg-light rounded p-2 me-2">
+                <i class="fas fa-user-graduate text-primary"></i>
             </div>
-            <div class="user-info">
-                <span class="user-name">{{ Auth::user()->name }}</span>
-                <span class="user-role">
-                    {{ Auth::user()->class ? 'Siswa - ' . Auth::user()->class : 'Siswa' }}
-                </span>
+            <div class="sidebar-brand-text">
+                <div class="fw-bold fs-6">LMS Trimurti</div>
+                <small class="text-light opacity-75">Siswa Panel</small>
             </div>
-        </div>
+        </a>
+    </div>
 
-        <div class="sidebar-menu">
-            <ul>
-                <li class="header-menu">
-                    <span>Menu Utama</span>
-                </li>
-                <li class="{{ request()->routeIs('siswa.dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.dashboard') }}" title="Dashboard">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-
-                <li class="header-menu">
-                    <span>Pembelajaran</span>
-                </li>
-                <li class="{{ request()->routeIs('siswa.materials.*') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.materials.index') }}" title="Materi Pembelajaran">
-                        <i class="fas fa-book"></i>
-                        <span>Materi Pembelajaran</span>
-                    </a>
-                </li>
-                <li class="{{ request()->routeIs('siswa.assignments.*') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.assignments.index') }}" title="Tugas Saya">
-                        <i class="fas fa-tasks"></i>
-                        <span>Tugas</span>
-                        @if(isset($upcomingDeadlinesCount) && $upcomingDeadlinesCount > 0)
-                            <span class="badge bg-warning ms-2">{{ $upcomingDeadlinesCount }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li class="{{ request()->routeIs('siswa.praktikum.*') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.praktikum.index') }}" title="Praktikum">
-                        <i class="fas fa-flask"></i>
-                        <span>Praktikum</span>
-                    </a>
-                </li>
-
-                <li class="header-menu">
-                    <span>Nilai & Kehadiran</span>
-                </li>
-                <li class="{{ request()->routeIs('siswa.nilai.*') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.nilai.index') }}" title="Nilai Saya">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Nilai</span>
-                    </a>
-                </li>
-                <li class="{{ request()->routeIs('siswa.absensi.*') ? 'active' : '' }}">
-                    <a href="{{ route('siswa.absensi.index') }}" title="Absensi Saya">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>Absensi</span>
-                    </a>
-                </li>
-
-                <li class="header-menu">
-                    <span>Akun</span>
-                </li>
-                <li>
-                    <a href="{{ route('siswa.profile.edit') }}" title="Edit Profil">
-                        <i class="fas fa-user"></i>
-                        <span>Profil</span>
-                    </a>
-                </li>
-            </ul>
+    <!-- User Profile -->
+    <div class="p-3 border-bottom border-secondary">
+        <div class="d-flex align-items-center">
+            @php
+                $student = \App\Models\Student::where('user_id', auth()->id())->first();
+            @endphp
+            @if($student && $student->foto)
+                <img src="{{ asset('storage/' . $student->foto) }}"
+                     alt="Profile"
+                     class="rounded-circle me-2 d-block"
+                     style="width: 40px; height: 40px; object-fit: cover;"
+                     onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.png') }}';">
+            @else
+                <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.png') }}"
+                     alt="Profile"
+                     class="rounded-circle me-2 d-block"
+                     style="width: 40px; height: 40px; object-fit: cover;"
+                     onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.png') }}';">
+            @endif
+            <div class="sidebar-user-info flex-grow-1">
+                <div class="fw-medium text-white small">{{ Str::limit(Auth::user()->name ?? 'Siswa', 15) }}</div>
+                <small class="text-light opacity-75">Siswa</small>
+            </div>
         </div>
     </div>
 
-    <div class="sidebar-footer">
-        <a href="#" class="sidebar-toggle" data-toggle="tooltip" title="Toggle Sidebar" aria-label="Toggle Sidebar">
-            <i class="fas fa-bars"></i>
-        </a>
-        <a href="{{ route('logout') }}"
-           onclick="event.preventDefault();
-                    document.getElementById('logout-form').submit();
-                    this.innerHTML = '<i class=\'fas fa-spinner fa-spin\'></i>';
-                    this.classList.add('disabled');"
-           data-toggle="tooltip" title="Logout" aria-label="Logout">
-            <i class="fas fa-sign-out-alt"></i>
-        </a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-            @csrf
-        </form>
+    <!-- Navigation Menu -->
+    <div class="sidebar-menu flex-grow-1">
+        <div class="p-2">
+            <!-- Learning Section -->
+            <div class="mb-3">
+                <div class="nav-section-title px-2 py-1 mb-2">
+                    <small class="text-light opacity-75 fw-medium">LEARNING</small>
+                </div>
+                <a href="{{ route('siswa.dashboard') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.dashboard') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tachometer-alt me-2 nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="{{ route('siswa.materials.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.materials.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-book me-2 nav-icon"></i>
+                    <span class="nav-text">Materi</span>
+                </a>
+                <a href="{{ route('siswa.assignments.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.assignments.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tasks me-2 nav-icon"></i>
+                    <span class="nav-text">Tugas</span>
+                </a>
+                <a href="{{ route('siswa.reports.practical') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.reports.practical') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-flask me-2 nav-icon"></i>
+                    <span class="nav-text">Praktikum</span>
+                </a>
+                <a href="{{ route('siswa.attendance.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.attendance.*') || request()->routeIs('siswa.reports.attendance') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-calendar-check me-2 nav-icon"></i>
+                    <span class="nav-text">Absensi</span>
+                </a>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- Sidebar Footer (Collapse Control) -->
+    <div class="sidebar-footer p-3 border-top border-opacity-25">
+        <div class="d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-light p-0 sidebar-toggle" title="Toggle Sidebar">
+                <i class="fas fa-angle-left"></i>
+            </button>
+            <div class="sidebar-collapse-text">
+                <small class="text-light opacity-75">Collapse</small>
+            </div>
+        </div>
     </div>
 </nav>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const mainContent = document.getElementById('main-content') || document.querySelector('.main-content');
+
+  function applyCollapsed(collapsed) {
+    if (!sidebar) return;
+    
+    sidebar.classList.toggle('collapsed', collapsed);
+    if (mainContent) {
+      mainContent.classList.toggle('expanded', collapsed);
+    }
+    localStorage.setItem('sidebarCollapsed', collapsed);
+    
+    // Update toggle icon
+    const toggleIcon = document.querySelector('.sidebar-toggle i');
+    if (toggleIcon) {
+      toggleIcon.className = collapsed ? 'fas fa-angle-right' : 'fas fa-angle-left';
+    }
+  }
+
+  // Bind all toggle triggers
+  const headerToggle = document.getElementById('sidebarToggle');
+  const footerToggles = document.querySelectorAll('.sidebar-toggle');
+  
+  if (headerToggle) {
+    headerToggle.addEventListener('click', () => applyCollapsed(!sidebar.classList.contains('collapsed')));
+  }
+  
+  footerToggles.forEach(btn => {
+    btn.addEventListener('click', () => applyCollapsed(!sidebar.classList.contains('collapsed')));
+  });
+
+  // Restore state
+  const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  applyCollapsed(isCollapsed);
+
+  // Mobile sidebar toggle
+  const mobileToggle = document.getElementById('mobileSidebarToggle');
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      sidebar.classList.toggle('show');
+      if (overlay) {
+        overlay.classList.toggle('active');
+      }
+    });
+  }
+
+  // Mobile overlay
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('active');
+    });
+  }
+
+  // Close mobile sidebar when clicking outside
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768) {
+      if (!e.target.closest('.sidebar, #mobileSidebarToggle, .sidebar-toggle')) {
+        sidebar.classList.remove('show');
+        if (overlay) {
+          overlay.classList.remove('active');
+        }
+      }
+    }
+  });
+});
+</script>

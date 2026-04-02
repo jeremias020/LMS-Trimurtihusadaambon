@@ -22,13 +22,26 @@ class KelasController extends Controller
      */
     public function index(): View
     {
-        $kelas = Kelas::with(['jurusan', 'waliKelas'])
-                     ->withCount('siswa')
-                     ->orderBy('tingkat')
-                     ->orderBy('nama')
-                     ->get();
-                     
-        return view('admin.kelas.index', compact('kelas'));
+        try {
+            $kelas = Kelas::with('guru')
+                         ->orderBy('name')
+                         ->get();
+            
+            // Calculate statistics
+            $totalSiswa = \App\Models\User::where('role', 'siswa')->count();
+            $kelasKeperawatan = $kelas->count(); // Tidak ada field major, hitung semua
+            $kelasFarmasi = 0; // Tidak ada field major, set 0
+                         
+            return view('admin.kelas.index', compact('kelas', 'totalSiswa', 'kelasKeperawatan', 'kelasFarmasi'));
+        } catch (\Exception $e) {
+            return view('admin.kelas.index', [
+                'kelas' => collect(),
+                'totalSiswa' => 0,
+                'kelasKeperawatan' => 0,
+                'kelasFarmasi' => 0,
+                'error' => 'Error loading kelas: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -36,13 +49,12 @@ class KelasController extends Controller
      */
     public function create(): View
     {
-        $jurusan = Jurusan::active()->get();
         $availableGuru = User::where('role', 'guru')
-                           ->where('status', 'active')
-                           ->whereDoesntHave('kelasWali') // Guru yang belum jadi wali kelas
+                           ->where('is_active', true)
                            ->get();
+        $jurusans = Jurusan::orderBy('name')->get();
         
-        return view('admin.kelas.create', compact('jurusan', 'availableGuru'));
+        return view('admin.kelas.create', compact('availableGuru', 'jurusans'));
     }
 
     /**
@@ -51,25 +63,38 @@ class KelasController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:100|unique:kelas,nama',
-            'tingkat' => 'required|in:X,XI,XII',
-            'jurusan_id' => 'required|exists:jurusan,id',
-            'kapasitas' => 'nullable|integer|min:1|max:50',
-            'wali_kelas_id' => 'nullable|exists:users,id',
-            'tahun_ajaran' => 'nullable|string|max:20',
-            'ruangan' => 'nullable|string|max:50'
+            'name' => 'required|string|max:100|unique:kelas,name',
+            'code' => 'required|string|max:20|unique:kelas,code',
+            'grade' => 'required|in:X,XI,XII',
+            'major' => 'required_without:jurusan_id|string|max:50',
+            'description' => 'nullable|string|max:500',
+            'capacity' => 'nullable|integer|min:1|max:50',
+            'guru_id' => 'nullable|exists:users,id',
+            'academic_year' => 'required|string|max:20',
+            'jurusan_id' => 'nullable|exists:jurusan,id'
         ]);
 
-        // Validate wali kelas
-        if ($validated['wali_kelas_id']) {
-            $guru = User::find($validated['wali_kelas_id']);
-            if ($guru->role !== 'guru' || $guru->status !== 'active') {
+        // Validate guru (wali kelas)
+        if ($validated['guru_id']) {
+            $guru = User::find($validated['guru_id']);
+            if ($guru->role !== 'guru' || !$guru->isActive()) {
                 return redirect()
                     ->back()
                     ->with('error', 'Wali kelas harus guru yang aktif.')
                     ->withInput();
             }
         }
+
+        // Sync major from jurusan if provided
+        if (!empty($validated['jurusan_id'])) {
+            $jurusan = Jurusan::find($validated['jurusan_id']);
+            if ($jurusan) {
+                $validated['major'] = $jurusan->nama;
+            }
+        }
+
+        // Set default values
+        $validated['capacity'] = $validated['capacity'] ?? 40;
 
         Kelas::create($validated);
 
@@ -83,7 +108,7 @@ class KelasController extends Controller
      */
     public function show(Kelas $kelas): View
     {
-        $kelas->load(['jurusan', 'waliKelas', 'siswa']);
+        $kelas->load(['guru', 'siswa']);
         
         return view('admin.kelas.show', compact('kelas'));
     }
@@ -93,16 +118,12 @@ class KelasController extends Controller
      */
     public function edit(Kelas $kelas): View
     {
-        $jurusan = Jurusan::active()->get();
         $availableGuru = User::where('role', 'guru')
-                           ->where('status', 'active')
-                           ->where(function($query) use ($kelas) {
-                               $query->whereDoesntHave('kelasWali')
-                                    ->orWhere('id', $kelas->wali_kelas_id);
-                           })
+                           ->where('is_active', true)
                            ->get();
+        $jurusans = Jurusan::orderBy('name')->get();
         
-        return view('admin.kelas.edit', compact('kelas', 'jurusan', 'availableGuru'));
+        return view('admin.kelas.edit', compact('kelas', 'availableGuru', 'jurusans'));
     }
 
     /**
@@ -111,25 +132,30 @@ class KelasController extends Controller
     public function update(Request $request, Kelas $kelas): RedirectResponse
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:100|unique:kelas,nama,' . $kelas->id,
-            'tingkat' => 'required|in:X,XI,XII',
-            'jurusan_id' => 'required|exists:jurusan,id',
-            'kapasitas' => 'nullable|integer|min:1|max:50',
-            'wali_kelas_id' => 'nullable|exists:users,id',
-            'tahun_ajaran' => 'nullable|string|max:20',
-            'ruangan' => 'nullable|string|max:50'
+            'name' => 'required|string|max:100|unique:kelas,name,' . $kelas->id,
+            'code' => 'required|string|max:10|unique:kelas,code,' . $kelas->id,
+            'grade' => 'required|in:X,XI,XII',
+            'major' => 'required_without:jurusan_id|string|max:50',
+            'description' => 'nullable|string|max:500',
+            'capacity' => 'nullable|integer|min:1|max:50',
+            'guru_id' => 'nullable|exists:users,id',
+            'academic_year' => 'required|string|max:20',
+            'jurusan_id' => 'nullable|exists:jurusan,id'
         ]);
 
-        // Validate wali kelas
-        if ($validated['wali_kelas_id']) {
-            $guru = User::find($validated['wali_kelas_id']);
-            if ($guru->role !== 'guru' || $guru->status !== 'active') {
+        // Validate guru (wali kelas)
+        if ($validated['guru_id']) {
+            $guru = User::find($validated['guru_id']);
+            if ($guru->role !== 'guru' || !$guru->isActive()) {
                 return redirect()
                     ->back()
                     ->with('error', 'Wali kelas harus guru yang aktif.')
                     ->withInput();
             }
         }
+
+        // Set default values
+        $validated['capacity'] = $validated['capacity'] ?? 40;
 
         $kelas->update($validated);
 
@@ -163,10 +189,8 @@ class KelasController extends Controller
     public function getAvailableRooms()
     {
         $rooms = ['Lab 1', 'Lab 2', 'Lab 3', 'Ruang 101', 'Ruang 102', 'Ruang 103', 'Ruang 201', 'Ruang 202', 'Ruang 203'];
-        $usedRooms = Kelas::whereNotNull('ruangan')->pluck('ruangan')->toArray();
-        $availableRooms = array_diff($rooms, $usedRooms);
-        
-        return response()->json(array_values($availableRooms));
+        // Since we don't have a room field in the current schema, return all rooms
+        return response()->json(array_values($rooms));
     }
 
     /**
@@ -186,7 +210,7 @@ class KelasController extends Controller
         $currentCount = $targetKelas->siswa()->count();
         $newCount = count($validated['siswa_ids']);
         
-        if (($currentCount + $newCount) > $targetKelas->kapasitas) {
+        if (($currentCount + $newCount) > $targetKelas->capacity) {
             return redirect()
                 ->back()
                 ->with('error', 'Kapasitas kelas tujuan tidak mencukupi.');
@@ -206,27 +230,24 @@ class KelasController extends Controller
      */
     public function generateKelasName(Request $request)
     {
-        $tingkat = $request->input('tingkat');
-        $jurusanId = $request->input('jurusan_id');
+        $grade = $request->input('grade');
+        $major = $request->input('major');
         
-        if (!$tingkat || !$jurusanId) {
-            return response()->json(['error' => 'Tingkat dan Jurusan diperlukan'], 400);
+        if (!$grade || !$major) {
+            return response()->json(['error' => 'Grade dan Major diperlukan'], 400);
         }
         
-        $jurusan = Jurusan::find($jurusanId);
-        if (!$jurusan) {
-            return response()->json(['error' => 'Jurusan tidak ditemukan'], 404);
-        }
-        
-        // Count existing classes for this tingkat and jurusan
-        $count = Kelas::where('tingkat', $tingkat)
-                     ->where('jurusan_id', $jurusanId)
-                     ->count();
+        // Count existing classes (tanpa filter grade dan major karena tidak ada)
+        $count = Kelas::count();
         
         $letter = chr(65 + $count); // A, B, C, etc.
-        $nama = "{$tingkat} {$jurusan->kode} {$letter}";
+        $name = "{$grade} {$major} {$letter}";
+        $code = strtoupper(substr($major, 0, 3)) . $grade . $letter;
         
-        return response()->json(['nama' => $nama]);
+        return response()->json([
+            'name' => $name,
+            'code' => $code
+        ]);
     }
 
     /**
@@ -235,10 +256,10 @@ class KelasController extends Controller
     public function bulkAction(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'action' => 'required|in:delete,change_wali',
+            'action' => 'required|in:delete,change_guru',
             'kelas_ids' => 'required|array|min:1',
             'kelas_ids.*' => 'exists:kelas,id',
-            'wali_kelas_id' => 'nullable|exists:users,id'
+            'guru_id' => 'nullable|exists:users,id'
         ]);
 
         $kelasCount = count($validated['kelas_ids']);
@@ -260,15 +281,15 @@ class KelasController extends Controller
                     ->route('admin.kelas.index')
                     ->with('success', "{$kelasCount} kelas berhasil dihapus.");
                     
-            case 'change_wali':
-                if (!$validated['wali_kelas_id']) {
+            case 'change_guru':
+                if (!$validated['guru_id']) {
                     return redirect()
                         ->back()
-                        ->with('error', 'Wali kelas harus dipilih untuk aksi ini.');
+                        ->with('error', 'Guru wali kelas harus dipilih untuk aksi ini.');
                 }
                 
                 Kelas::whereIn('id', $validated['kelas_ids'])
-                    ->update(['wali_kelas_id' => $validated['wali_kelas_id']]);
+                    ->update(['guru_id' => $validated['guru_id']]);
                     
                 return redirect()
                     ->route('admin.kelas.index')

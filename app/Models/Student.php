@@ -3,50 +3,107 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Student extends Model
+class Student extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    protected $table = 'siswa';
+    protected $table = 'users';
 
     protected $fillable = [
-        'user_id',
-        'nis',
-        'nisn',
-        'jenis_kelamin',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'alamat',
-        'no_telepon',
-        'kelas_id',
-        'major',
-        'tahun_ajaran',
-        'nama_ortu',
-        'no_telepon_ortu',
-        'golongan_darah',
-        'riwayat_penyakit',
-        'alergi',
-        'info_kesehatan',
-        'status'
+        'name',
+        'email',
+        'password',
+        'role',
+        'nis_nip',
+        'phone',
+        'avatar',
+        'is_active',
+        'remember_token',
+        'email_verified_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
-        'tanggal_lahir' => 'date',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo
+    protected $appends = ['photo_url', 'age', 'gender_display', 'full_name'];
+
+    // Accessors
+    public function getPhotoUrlAttribute()
     {
-        return $this->belongsTo(User::class);
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
     }
 
-    public function kelas(): BelongsTo
+    public function getAgeAttribute()
     {
-        return $this->belongsTo(Kelas::class);
+        return null; // Tidak ada field tanggal_lahir di tabel users
     }
 
+    public function getGenderDisplayAttribute()
+    {
+        return null; // Tidak ada field jenis_kelamin di tabel users
+    }
+
+    public function getFullNameAttribute()
+    {
+        return $this->name;
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeByKelas($query, $kelasId)
+    {
+        return $query; // Tidak ada relationship ke class_students
+    }
+
+    public function scopeByMajor($query, $major)
+    {
+        return $query; // Tidak ada field major di tabel users
+    }
+
+    public function scopeByTahunAjaran($query, $tahun)
+    {
+        return $query; // Tidak ada field tahun_ajaran di tabel users
+    }
+
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    // Methods
+    public function isActive()
+    {
+        return $this->is_active === true;
+    }
+
+    public function getRoleAttribute()
+    {
+        return 'siswa';
+    }
+
+    // Relationships
     public function attendances()
     {
         return $this->hasMany(Attendance::class, 'siswa_id');
@@ -67,30 +124,23 @@ class Student extends Model
         return $this->hasMany(PracticalScore::class, 'siswa_id');
     }
 
-    // Scopes
-    public function scopeActive($query)
+    public function materials()
     {
-        return $query->where('status', 'aktif');
+        return $this->belongsToMany(Material::class, 'material_downloads', 'siswa_id', 'material_id');
     }
 
-    public function scopeByKelas($query, $kelasId)
+    public function assignments()
     {
-        return $query->where('kelas_id', $kelasId);
+        return $this->belongsToMany(Assignment::class, 'assignment_submissions', 'siswa_id', 'assignment_id');
     }
 
-    public function scopeByMajor($query, $major)
+    public function practicals()
     {
-        return $query->where('major', $major);
+        return $this->belongsToMany(Practical::class, 'practical_scores', 'siswa_id', 'practical_id');
     }
-
-    // Accessors
-    public function getFullNameAttribute()
+    
+    public function kelas()
     {
-        return $this->user ? $this->user->name : $this->name;
-    }
-
-    public function getAgeAttribute()
-    {
-        return $this->tanggal_lahir ? now()->diffInYears($this->tanggal_lahir) : null;
+        return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 }

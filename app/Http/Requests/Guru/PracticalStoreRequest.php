@@ -17,7 +17,7 @@ class PracticalStoreRequest extends FormRequest
         return [
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
-            'tanggal' => 'required|date|after_or_equal:today',
+            'date' => 'required|date|after_or_equal:today',
             'lokasi' => 'nullable|string|max:255',
             'durasi' => 'required|integer|min:1|max:480',
             'alat' => 'nullable|string|max:500',
@@ -79,7 +79,7 @@ class PracticalStoreRequest extends FormRequest
         return [
             'judul' => 'judul praktikum',
             'deskripsi' => 'deskripsi',
-            'tanggal' => 'tanggal praktikum',
+            'date' => 'tanggal praktikum',
             'lokasi' => 'lokasi',
             'durasi' => 'durasi',
             'alat' => 'alat',

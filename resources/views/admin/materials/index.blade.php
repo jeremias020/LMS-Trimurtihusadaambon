@@ -64,8 +64,8 @@
                 <i class="fas fa-hdd text-red-600 text-xl"></i>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Total Ukuran</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total_size'] / 1024 / 1024, 1) }} MB</p>
+                <p class="text-sm font-medium text-gray-600">Total Downloads</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $stats['total_downloads'] }}</p>
             </div>
         </div>
     </div>

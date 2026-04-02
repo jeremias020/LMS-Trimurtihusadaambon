@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class JadwalUjian extends Model
 {
@@ -15,29 +16,30 @@ class JadwalUjian extends Model
     protected $table = 'jadwal_ujian';
 
     protected $fillable = [
-        'tanggal',
+        'nama',
+        'date',
         'waktu_mulai',
         'waktu_selesai',
         'mata_pelajaran',
         'kelas_id',
-        'jenis_ujian',
+        'tipe',
         'pengawas_id',
-        'ruangan',
+        'lokasi',
         'deskripsi',
         'status'
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'date' => 'date',
         'waktu_mulai' => 'datetime:H:i',
         'waktu_selesai' => 'datetime:H:i'
     ];
 
-    // Jenis ujian yang tersedia
-    const JENIS_QUIZ = 'quiz';
-    const JENIS_UTS = 'uts';
-    const JENIS_UAS = 'uas';
-    const JENIS_PRAKTIK = 'praktik';
+    // Tipe ujian yang tersedia
+    const TIPE_QUIZ = 'quiz';
+    const TIPE_UTS = 'uts';
+    const TIPE_UAS = 'uas';
+    const TIPE_PRAKTIK = 'praktik';
 
     // Status ujian
     const STATUS_SCHEDULED = 'scheduled';
@@ -78,9 +80,9 @@ class JadwalUjian extends Model
      */
     public function scopeUpcoming($query)
     {
-        return $query->where('tanggal', '>=', now()->toDateString())
+        return $query->where('date', '>=', now()->toDateString())
                     ->where('status', self::STATUS_SCHEDULED)
-                    ->orderBy('tanggal')
+                    ->orderBy('date')
                     ->orderBy('waktu_mulai');
     }
 
@@ -89,15 +91,15 @@ class JadwalUjian extends Model
      */
     public function scopeToday($query)
     {
-        return $query->where('tanggal', now()->toDateString());
+        return $query->where('date', now()->toDateString());
     }
 
     /**
-     * Scope berdasarkan jenis ujian
+     * Scope berdasarkan tipe ujian
      */
-    public function scopeByJenis($query, $jenis)
+    public function scopeByTipe($query, $tipe)
     {
-        return $query->where('jenis_ujian', $jenis);
+        return $query->where('tipe', $tipe);
     }
 
     /**
@@ -109,15 +111,15 @@ class JadwalUjian extends Model
     }
 
     /**
-     * Get list jenis ujian
+     * Get list tipe ujian
      */
-    public static function getJenisUjianList()
+    public static function getTipeUjianList()
     {
         return [
-            self::JENIS_QUIZ => 'Quiz/Kuis',
-            self::JENIS_UTS => 'Ujian Tengah Semester',
-            self::JENIS_UAS => 'Ujian Akhir Semester',
-            self::JENIS_PRAKTIK => 'Ujian Praktik'
+            self::TIPE_QUIZ => 'Quiz/Kuis',
+            self::TIPE_UTS => 'Ujian Tengah Semester',
+            self::TIPE_UAS => 'Ujian Akhir Semester',
+            self::TIPE_PRAKTIK => 'Ujian Praktik'
         ];
     }
 
@@ -139,7 +141,7 @@ class JadwalUjian extends Model
      */
     public function getDateTimeAttribute()
     {
-        return $this->tanggal->format('d/m/Y') . ' ' . 
+        return $this->date->format('d/m/Y') . ' ' . 
                Carbon::parse($this->waktu_mulai)->format('H:i') . ' - ' .
                Carbon::parse($this->waktu_selesai)->format('H:i');
     }
@@ -174,7 +176,7 @@ class JadwalUjian extends Model
      */
     public function getDaysUntilExamAttribute()
     {
-        return now()->startOfDay()->diffInDays($this->tanggal, false);
+        return now()->startOfDay()->diffInDays($this->date, false);
     }
 
     /**
@@ -182,7 +184,7 @@ class JadwalUjian extends Model
      */
     public function hasStarted()
     {
-        $examDateTime = Carbon::parse($this->tanggal->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_mulai)->format('H:i:s'));
+        $examDateTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_mulai)->format('H:i:s'));
         return now()->greaterThanOrEqualTo($examDateTime);
     }
 
@@ -191,7 +193,7 @@ class JadwalUjian extends Model
      */
     public function hasEnded()
     {
-        $examEndTime = Carbon::parse($this->tanggal->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_selesai)->format('H:i:s'));
+        $examEndTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_selesai)->format('H:i:s'));
         return now()->greaterThan($examEndTime);
     }
 
@@ -230,25 +232,21 @@ class JadwalUjian extends Model
         // Clear existing notifications
         $this->scheduledNotifications()->delete();
         
-        $examDateTime = Carbon::parse($this->tanggal->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_mulai)->format('H:i:s'));
+        $examDateTime = Carbon::parse($this->date->format('Y-m-d') . ' ' . Carbon::parse($this->waktu_mulai)->format('H:i:s'));
         
         $notifications = [
-            [
-                'notification_type' => 'h7',
-                'scheduled_at' => $examDateTime->copy()->subDays(7),
-            ],
             [
                 'notification_type' => 'h3',
                 'scheduled_at' => $examDateTime->copy()->subDays(3),
             ],
             [
+                'notification_type' => 'h2',
+                'scheduled_at' => $examDateTime->copy()->subDays(2),
+            ],
+            [
                 'notification_type' => 'h1',
                 'scheduled_at' => $examDateTime->copy()->subDay(),
             ],
-            [
-                'notification_type' => 'h0',
-                'scheduled_at' => $examDateTime->copy()->subHours(2), // 2 jam sebelum ujian
-            ]
         ];
         
         foreach ($notifications as $notification) {
@@ -281,13 +279,17 @@ class JadwalUjian extends Model
     {
         // Generate notifications setelah ujian dibuat
         static::created(function ($jadwal) {
-            $jadwal->generateScheduledNotifications();
+            if (Schema::hasTable('scheduled_notifications')) {
+                $jadwal->generateScheduledNotifications();
+            }
         });
         
         // Update notifications jika jadwal diubah
         static::updated(function ($jadwal) {
-            if ($jadwal->isDirty(['tanggal', 'waktu_mulai']) && $jadwal->status === self::STATUS_SCHEDULED) {
-                $jadwal->generateScheduledNotifications();
+            if (Schema::hasTable('scheduled_notifications')) {
+                if ($jadwal->isDirty(['date', 'waktu_mulai']) && $jadwal->status === self::STATUS_SCHEDULED) {
+                    $jadwal->generateScheduledNotifications();
+                }
             }
         });
     }

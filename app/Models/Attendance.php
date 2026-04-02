@@ -11,18 +11,19 @@ class Attendance extends Model
 
     protected $fillable = [
         'siswa_id',
-        'tanggal',
+        'class_subject_id',
+        'date',
         'status',
-        'keterangan',
-        'waktu_masuk',
-        'waktu_keluar',
+        'note',
+        'created_by',
         'recorded_by',
         'type', // regular atau praktik
         'practical_id', // ID praktik terkait (jika type = praktik)
+        'subject_id', // ID mata pelajaran
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'date' => 'date',
         'waktu_masuk' => 'datetime',
         'waktu_keluar' => 'datetime',
         'created_at' => 'datetime',
@@ -38,6 +39,16 @@ class Attendance extends Model
     public function recorder()
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'siswa_id', 'user_id');
     }
 
     // Scopes
@@ -58,13 +69,13 @@ class Attendance extends Model
 
     public function scopeByDate($query, $date)
     {
-        return $query->whereDate('tanggal', $date);
+        return $query->whereDate('date', $date);
     }
 
     public function scopeByMonth($query, $year, $month)
     {
-        return $query->whereYear('tanggal', $year)
-                    ->whereMonth('tanggal', $month);
+        return $query->whereYear('date', $year)
+                    ->whereMonth('date', $month);
     }
 
     // Accessors

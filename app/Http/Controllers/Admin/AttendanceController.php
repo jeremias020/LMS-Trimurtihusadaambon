@@ -10,44 +10,65 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'admin']);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Attendance::with(['siswa']);
+        try {
+            $query = Attendance::with(['siswa']);
 
-        // Filter by date range
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
+            // Filter by date range
+            if ($request->filled('start_date')) {
+                $query->whereDate('date', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('date', '<=', $request->end_date);
+            }
+
+            // Filter by status
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by student
+            if ($request->filled('siswa_id')) {
+                $query->where('siswa_id', $request->siswa_id);
+            }
+
+            $attendances = $query->orderBy('date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+
+            // Get students for filter dropdown
+            $students = User::where('role', 'siswa')
+                ->orderBy('name')
+                ->get();
+
+            // Get statistics
+            $stats = $this->getAttendanceStats($request);
+
+            return view('admin.attendance.index', compact('attendances', 'students', 'stats'));
+        } catch (\Exception $e) {
+            return view('admin.attendance.index', [
+                'attendances' => collect(),
+                'students' => collect(),
+                'stats' => [
+                    'total' => 0,
+                    'hadir' => 0,
+                    'izin' => 0,
+                    'sakit' => 0,
+                    'alpha' => 0,
+                    'attendance_rate' => 0
+                ],
+                'error' => 'Error loading attendance data: ' . $e->getMessage()
+            ]);
         }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
-        }
-
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by student
-        if ($request->filled('siswa_id')) {
-            $query->where('siswa_id', $request->siswa_id);
-        }
-
-        $attendances = $query->orderBy('tanggal', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        // Get students for filter dropdown
-        $students = User::where('role', 'siswa')
-            ->orderBy('name')
-            ->get();
-
-        // Get statistics
-        $stats = $this->getAttendanceStats($request);
-
-        return view('admin.attendance.index', compact('attendances', 'students', 'stats'));
     }
 
     /**
@@ -55,11 +76,18 @@ class AttendanceController extends Controller
      */
     public function create()
     {
-        $students = User::where('role', 'siswa')
-            ->orderBy('name')
-            ->get();
+        try {
+            $students = User::where('role', 'siswa')
+                ->orderBy('name')
+                ->get();
 
-        return view('admin.attendance.create', compact('students'));
+            return view('admin.attendance.create', compact('students'));
+        } catch (\Exception $e) {
+            return view('admin.attendance.create', [
+                'students' => collect(),
+                'error' => 'Error loading students: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -69,7 +97,7 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'siswa_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date',
+            'date' => 'required|date',
             'status' => 'required|in:hadir,izin,sakit,alpha',
             'keterangan' => 'nullable|string|max:255',
             'waktu_masuk' => 'nullable|date_format:H:i',
@@ -80,10 +108,10 @@ class AttendanceController extends Controller
         
         // Combine date and time for waktu_masuk and waktu_keluar
         if ($request->waktu_masuk) {
-            $data['waktu_masuk'] = Carbon::parse($request->tanggal . ' ' . $request->waktu_masuk);
+            $data['waktu_masuk'] = Carbon::parse($request->date . ' ' . $request->waktu_masuk);
         }
         if ($request->waktu_keluar) {
-            $data['waktu_keluar'] = Carbon::parse($request->tanggal . ' ' . $request->waktu_keluar);
+            $data['waktu_keluar'] = Carbon::parse($request->date . ' ' . $request->waktu_keluar);
         }
 
         Attendance::create($data);
@@ -120,7 +148,7 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'siswa_id' => 'required|exists:users,id',
-            'tanggal' => 'required|date',
+            'date' => 'required|date',
             'status' => 'required|in:hadir,izin,sakit,alpha',
             'keterangan' => 'nullable|string|max:255',
             'waktu_masuk' => 'nullable|date_format:H:i',
@@ -131,13 +159,13 @@ class AttendanceController extends Controller
         
         // Combine date and time for waktu_masuk and waktu_keluar
         if ($request->waktu_masuk) {
-            $data['waktu_masuk'] = Carbon::parse($request->tanggal . ' ' . $request->waktu_masuk);
+            $data['waktu_masuk'] = Carbon::parse($request->date . ' ' . $request->waktu_masuk);
         } else {
             $data['waktu_masuk'] = null;
         }
         
         if ($request->waktu_keluar) {
-            $data['waktu_keluar'] = Carbon::parse($request->tanggal . ' ' . $request->waktu_keluar);
+            $data['waktu_keluar'] = Carbon::parse($request->date . ' ' . $request->waktu_keluar);
         } else {
             $data['waktu_keluar'] = null;
         }
@@ -190,10 +218,10 @@ class AttendanceController extends Controller
 
         // Apply same filters as main query
         if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
+            $query->whereDate('date', '>=', $request->start_date);
         }
         if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
+            $query->whereDate('date', '<=', $request->end_date);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);

@@ -8,6 +8,7 @@ use App\Models\Assignment;
 use App\Models\Practical;
 use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -49,10 +50,10 @@ class DashboardController extends Controller
                 ->whereNull('assignment_submissions.score')
                 ->count(),
             'today_attendance' => Attendance::where('recorded_by', $guruId)
-                ->whereDate('tanggal', $today)
+                ->whereDate('date', $today)
                 ->count(),
             'week_attendance' => Attendance::where('recorded_by', $guruId)
-                ->whereBetween('tanggal', [$weekStart, $weekEnd])
+                ->whereBetween('date', [$weekStart, $weekEnd])
                 ->count(),
         ];
 
@@ -91,16 +92,15 @@ class DashboardController extends Controller
             ->get();
 
         // Grafik absensi mingguan — hanya untuk absensi yang direkam guru ini
-        $weeklyAttendance = Attendance::select(
-                DB::raw('DATE(tanggal) as date'),
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) as present')
-            )
-            ->where('recorded_by', $guruId)
-            ->whereBetween('tanggal', [$weekStart, $weekEnd])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+        $weeklyAttendance = DB::select('
+            SELECT DATE(date) as date, COUNT(*) as total, 
+                   SUM(CASE WHEN status = "present" THEN 1 ELSE 0 END) as present
+            FROM attendances 
+            WHERE recorded_by = ? 
+            AND date BETWEEN ? AND ?
+            GROUP BY DATE(date)
+            ORDER BY DATE(date) ASC
+        ', [$guruId, $weekStart, $weekEnd]);
 
         // Top materials
         $topMaterials = Material::where('guru_id', $guruId)
@@ -114,6 +114,12 @@ class DashboardController extends Controller
             'guru_id' => $guruId,
             'ip' => request()->ip()
         ]);
+
+        // Notifications for header bell
+        $notifications = Notification::where('penerima_id', $guruId)
+            ->latest()->take(10)->get();
+        $unreadCount = Notification::where('penerima_id', $guruId)
+            ->whereNull('read_at')->count();
 
         return view('guru.dashboard', compact(
             'stats',
@@ -130,11 +136,13 @@ class DashboardController extends Controller
             'recentActivities' => collect(), // Empty collection for now
             'recentSubmissions' => $pendingSubmissions, // Use pending submissions as recent submissions
             'upcomingDeadlines' => Assignment::where('guru_id', $guruId)
-                ->where('deadline', '>', now())
-                ->where('deadline', '<=', now()->addWeeks(2))
-                ->orderBy('deadline')
+                ->where('due_date', '>', now())
+                ->where('due_date', '<=', now()->addWeeks(2))
+                ->orderBy('due_date')
                 ->take(6)
-                ->get()
+                ->get(),
+            'notifications' => $notifications,
+            'unreadCount' => $unreadCount,
         ]);
     }
 
@@ -157,8 +165,9 @@ class DashboardController extends Controller
                 ->whereDate('created_at', $today)
                 ->count(),
             'attendance_rate' => Attendance::where('recorded_by', $guruId)
-                ->whereDate('tanggal', $today)
+                ->whereDate('date', $today)
                 ->selectRaw('ROUND((SUM(CASE WHEN status = "hadir" THEN 1 ELSE 0 END) * 100.0 / COUNT(*)), 2) as rate')
+                ->groupBy('recorded_by')
                 ->first()?->rate ?? 0,
         ];
 

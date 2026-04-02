@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,19 +17,18 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUserProfile;
 
+    protected $table = 'users_central';
+
     protected $fillable = [
         'name',
         'email',
         'username',
         'password',
         'role',
-        'kelas_id',
         'phone',
-        'address',
-        'birth_date',
-        'gender',
         'photo',
-        'status',
+        'is_active',
+        'remember_token',
         'email_verified_at',
     ];
 
@@ -51,7 +51,7 @@ class User extends Authenticatable
     // Relationships
     public function siswa(): HasOne
     {
-        return $this->hasOne(Student::class);
+        return $this->hasOne(Student::class, 'id', 'id');
     }
 
     public function guru(): HasOne
@@ -84,6 +84,11 @@ class User extends Authenticatable
         return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
+    public function jurusan(): BelongsTo
+    {
+        return $this->belongsTo(Jurusan::class, 'jurusan_id');
+    }
+
     // Scopes untuk filter role
     public function scopeAdmin($query)
     {
@@ -102,12 +107,12 @@ class User extends Authenticatable
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('is_active', true);
     }
 
     public function scopeInactive($query)
     {
-        return $query->where('status', 'inactive');
+        return $query->where('is_active', false);
     }
 
     // Helper methods
@@ -308,9 +313,17 @@ class User extends Authenticatable
         // Auto create siswa/guru profile setelah user dibuat
         static::created(function ($user) {
             if ($user->isSiswa()) {
-                // Get first available kelas or create default
-                $kelasId = \App\Models\Kelas::first()?->id ?? 1;
-                
+                // Prefer kelas & jurusan chosen during user creation
+                $kelasId = $user->kelas_id ?? \App\Models\Kelas::first()?->id;
+                $kelas = $kelasId ? \App\Models\Kelas::find($kelasId) : null;
+
+                // Determine major and academic year
+                $major = $user->jurusan?->nama
+                    ?? $kelas?->major
+                    ?? 'Umum';
+                $tahunAjaran = $kelas?->academic_year
+                    ?? (date('Y') . '/' . (date('Y') + 1));
+
                 Student::create([
                     'user_id' => $user->id,
                     'nis' => 'SIS' . str_pad($user->id, 6, '0', STR_PAD_LEFT),
@@ -320,7 +333,9 @@ class User extends Authenticatable
                     'tanggal_lahir' => now()->subYears(18)->format('Y-m-d'),
                     'alamat' => $user->address ?? 'Alamat tidak tersedia',
                     'no_telepon' => $user->phone ?? '0000000000',
-                    'kelas_id' => $kelasId,
+                    'kelas_id' => $kelasId ?? \App\Models\Kelas::first()?->id,
+                    'major' => $major,
+                    'tahun_ajaran' => $tahunAjaran,
                     'status' => 'aktif'
                 ]);
             } elseif ($user->isGuru()) {
@@ -372,4 +387,18 @@ class User extends Authenticatable
 
         return $username;
     }
-}
+
+    /**
+     * Relationship dengan Subject (guru)
+     */
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class, 'guru_id');
+    }
+    /**
+     * Relationship dengan Material (guru)
+     */
+    public function materials()
+    {
+        return $this->hasMany(Material::class, 'guru_id');
+    }}

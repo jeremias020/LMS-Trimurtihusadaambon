@@ -249,7 +249,7 @@
                             <option value="">🔍 Semua Mata Pelajaran</option>
                             @foreach($subjects as $subject)
                             <option value="{{ $subject->id }}" {{ request('subject_id') == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->nama ?? $subject->name }}
+                                {{ $subject->name }}
                             </option>
                             @endforeach
                         </select>
@@ -259,11 +259,17 @@
                         <label class="form-label small fw-medium text-primary">
                             <i class="fas fa-users me-1"></i>Kelas
                         </label>
-                        <select name="class" class="form-select form-select-sm">
+                        <select name="class_id" class="form-select form-select-sm">
                             <option value="">🔍 Semua Kelas</option>
-                            <option value="X" {{ request('class') == 'X' ? 'selected' : '' }}>📚 Kelas X</option>
-                            <option value="XI" {{ request('class') == 'XI' ? 'selected' : '' }}>📖 Kelas XI</option>
-                            <option value="XII" {{ request('class') == 'XII' ? 'selected' : '' }}>🎓 Kelas XII</option>
+                            @if(isset($classes))
+                                @foreach($classes as $class)
+                                <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                    � {{ $class->name }}
+                                </option>
+                                @endforeach
+                            @else
+                                <option value="1" {{ request('class_id') == '1' ? 'selected' : '' }}>📚 Kelas X Keperawatan</option>
+                            @endif
                         </select>
                     </div>
                     
@@ -384,14 +390,20 @@
                                     </div>
                                 </div>
                             </td>
+                            @php
+    $classSubjectData = $assignment->getClassSubject();
+    $subjectName = $classSubjectData->subject_name ?? 'N/A';
+    $className = $classSubjectData->class_name ?? 'N/A';
+@endphp
+
                             <td class="text-nowrap">
                                 <span class="badge bg-light text-dark border">
-                                    {{ $assignment->subject->nama ?? $assignment->subject->name ?? $assignment->subject ?? 'N/A' }}
+                                    {{ $subjectName }}
                                 </span>
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-secondary">
-                                    {{ $assignment->class ?? 'Semua' }}
+                                    {{ $className }}
                                 </span>
                             </td>
                             

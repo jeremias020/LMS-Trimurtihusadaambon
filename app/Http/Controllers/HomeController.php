@@ -8,6 +8,7 @@ use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class HomeController extends Controller
 {
@@ -23,7 +24,12 @@ class HomeController extends Controller
             return $this->redirectToDashboard();
         }
 
-        return view('welcome');
+        return view('welcome', [
+            'stats' => [
+                'siswa' => User::where('role', 'siswa')->count(),
+                'guru' => User::where('role', 'guru')->count(),
+            ],
+        ]);
     }
 
     /**

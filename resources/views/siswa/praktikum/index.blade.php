@@ -44,13 +44,13 @@
 
                 <!-- Export Buttons -->
                 <div class="btn-group ms-2">
-                    <a href="{{ route('siswa.praktikum.export', ['format' => 'pdf']) }}"
+                    <a href="{{ route('siswa.praktikum.export') }}"
                        class="btn btn-outline-danger export-btn"
                        title="Export ke PDF"
                        data-format="pdf">
                         <i class="fas fa-file-pdf"></i>
                     </a>
-                    <a href="{{ route('siswa.praktikum.export', ['format' => 'excel']) }}"
+                    <a href="{{ route('siswa.praktikum.export') }}"
                        class="btn btn-outline-success export-btn"
                        title="Export ke Excel"
                        data-format="excel">
@@ -69,46 +69,46 @@
                         <div class="card-header bg-light border-0">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h5 class="card-title mb-1">{{ $practical->title }}</h5>
-                                    <small class="text-muted">Oleh: {{ optional($practical->teacher)->name ?? 'Tidak tersedia' }}</small>
+                                    <h5 class="card-title mb-1">{{ $practical->judul ?? '-' }}</h5>
+                                    <small class="text-muted">Oleh: {{ optional($practical->guru)->name ?? 'Tidak tersedia' }}</small>
                                 </div>
-                                @if($practical->date->isToday())
+                                @if($practical->tanggal?->isToday() ?? false)
                                     <span class="badge bg-warning text-dark">Hari Ini</span>
                                 @endif
                             </div>
                         </div>
                         <div class="card-body">
-                            <p class="card-text text-muted">{{ Str::limit($practical->description, 200) }}</p>
+                            <p class="card-text text-muted">{{ Str::limit($practical->deskripsi ?? '', 200) }}</p>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <strong><i class="fas fa-calendar-alt me-1"></i> Tanggal:</strong>
-                                    <span title="{{ $practical->date->translatedFormat('l, d F Y') }}">
-                                        {{ $practical->date->format('d M Y') }}
+                                    <span title="{{ $practical->tanggal?->translatedFormat('l, d F Y') ?? '-' }}">
+                                        {{ $practical->tanggal?->format('d M Y') ?? '-' }}
                                     </span>
                                 </div>
                                 <div class="col-md-6">
                                     <strong><i class="fas fa-clock me-1"></i> Waktu:</strong>
-                                    {{ $practical->start_time }} - {{ $practical->end_time }}
+                                    {{ $practical->waktu_mulai ?? '-' }} - {{ $practical->waktu_selesai ?? '-' }}
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <strong><i class="fas fa-map-marker-alt me-1"></i> Lokasi:</strong>
-                                    {{ $practical->location }}
+                                    {{ $practical->lokasi ?? '-' }}
                                 </div>
                                 <div class="col-md-6">
                                     <strong><i class="fas fa-users me-1"></i> Kelas:</strong>
-                                    {{ $practical->class_level ?? 'Tidak tersedia' }}
+                                    {{ $practical->kelas?->name ?? 'Tidak tersedia' }}
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <strong>Status:</strong>
-                                @if($practical->date->isFuture())
+                                @if($practical->tanggal?->isFuture() ?? false)
                                     <span class="badge bg-info">Akan Datang</span>
-                                @elseif($practical->date->isToday())
+                                @elseif($practical->tanggal?->isToday() ?? false)
                                     <span class="badge bg-warning text-dark">Hari Ini</span>
                                 @else
                                     <span class="badge bg-success">Selesai</span>
@@ -125,18 +125,12 @@
                                     <i class="fas fa-info-circle me-1"></i> Detail
                                 </button>
 
-                                @if($practical->materials_count > 0)
-                                    <a href="#" class="btn btn-sm btn-outline-success" title="Unduh materi praktikum">
-                                        <i class="fas fa-download me-1"></i> Materi ({{ $practical->materials_count }})
-                                    </a>
-                                @endif
-
-                                @if($practical->scores->where('user_id', Auth::id())->count() > 0)
+                                @if(($practical->scores?->where('siswa_id', Auth::id())->count() ?? 0) > 0)
                                     @php
-                                        $score = $practical->scores->where('user_id', Auth::id())->first();
+                                        $score = $practical->scores?->where('siswa_id', Auth::id())->first();
                                     @endphp
                                     <span class="btn btn-sm btn-outline-info" title="Nilai Anda">
-                                        <i class="fas fa-star me-1"></i> Nilai: {{ $score->score }}/100
+                                        <i class="fas fa-star me-1"></i> Nilai: {{ $score?->score ?? '-' }}/100
                                     </span>
                                 @endif
                             </div>
@@ -153,50 +147,36 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="practicalDetailModalLabel{{ $practical->id }}">{{ $practical->title }}</h5>
+                                <h5 class="modal-title" id="practicalDetailModalLabel{{ $practical->id }}">{{ $practical->judul ?? '-' }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <p><strong>Deskripsi:</strong></p>
-                                        <p>{{ $practical->description }}</p>
+                                        <p>{{ $practical->deskripsi ?? '-' }}</p>
                                     </div>
                                     <div class="col-md-6">
                                         <p><strong>Detail:</strong></p>
                                         <ul class="list-unstyled">
-                                            <li><i class="fas fa-calendar-alt me-2"></i> <strong>Tanggal:</strong> {{ $practical->date->format('d M Y') }}</li>
-                                            <li><i class="fas fa-clock me-2"></i> <strong>Waktu:</strong> {{ $practical->start_time }} - {{ $practical->end_time }}</li>
-                                            <li><i class="fas fa-map-marker-alt me-2"></i> <strong>Lokasi:</strong> {{ $practical->location }}</li>
-                                            <li><i class="fas fa-user-tie me-2"></i> <strong>Pengajar:</strong> {{ optional($practical->teacher)->name ?? 'Tidak tersedia' }}</li>
-                                            <li><i class="fas fa-users me-2"></i> <strong>Kelas:</strong> {{ $practical->class_level ?? 'Tidak tersedia' }}</li>
+                                            <li><i class="fas fa-calendar-alt me-2"></i> <strong>Tanggal:</strong> {{ $practical->tanggal?->format('d M Y') ?? '-' }}</li>
+                                            <li><i class="fas fa-clock me-2"></i> <strong>Waktu:</strong> {{ $practical->waktu_mulai ?? '-' }} - {{ $practical->waktu_selesai ?? '-' }}</li>
+                                            <li><i class="fas fa-map-marker-alt me-2"></i> <strong>Lokasi:</strong> {{ $practical->lokasi ?? '-' }}</li>
+                                            <li><i class="fas fa-user-tie me-2"></i> <strong>Pengajar:</strong> {{ optional($practical->guru)->name ?? 'Tidak tersedia' }}</li>
+                                            <li><i class="fas fa-users me-2"></i> <strong>Kelas:</strong> {{ $practical->kelas?->name ?? 'Tidak tersedia' }}</li>
                                         </ul>
                                     </div>
                                 </div>
 
-                                @if($practical->materials_count > 0)
-                                    <hr>
-                                    <h6>Materi Praktikum:</h6>
-                                    <div class="list-group">
-                                        @foreach($practical->materials as $material)
-                                            <a href="{{ route('siswa.materials.download', $material->id) }}"
-                                               class="list-group-item list-group-item-action"
-                                               title="Unduh {{ $material->title }}">
-                                                <i class="fas fa-file-download me-2"></i> {{ $material->title }}
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                @endif
-
-                                @if($practical->scores->where('user_id', Auth::id())->count() > 0)
+                                @if(($practical->scores?->where('siswa_id', Auth::id())->count() ?? 0) > 0)
                                     <hr>
                                     <h6>Penilaian:</h6>
                                     @php
-                                        $score = $practical->scores->where('user_id', Auth::id())->first();
+                                        $score = $practical->scores?->where('siswa_id', Auth::id())->first();
                                     @endphp
                                     <div class="alert alert-info">
-                                        <p class="mb-1"><strong>Nilai:</strong> {{ $score->score }}/100</p>
-                                        @if($score->feedback)
+                                        <p class="mb-1"><strong>Nilai:</strong> {{ $score?->score ?? '-' }}/100</p>
+                                        @if($score?->feedback)
                                             <p class="mb-0"><strong>Feedback:</strong> {{ $score->feedback }}</p>
                                         @endif
                                     </div>
@@ -204,9 +184,6 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                @if($practical->materials_count > 0)
-                                    <a href="#" class="btn btn-primary">Unduh Semua Materi</a>
-                                @endif
                             </div>
                         </div>
                     </div>
@@ -229,8 +206,6 @@
         </div>
     </div>
 </div>
-@endsection
-
 @push('js')
 <style>
 .hover-card {

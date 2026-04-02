@@ -22,7 +22,7 @@
                     </svg>
                     Cetak
                 </button>
-                <button onclick="exportPDF()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center transition" title="Ekspor ke PDF">
+                <button onclick="exportPDF(event)" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center transition" title="Ekspor ke PDF">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
@@ -139,42 +139,44 @@ document.addEventListener('DOMContentLoaded', function() {
     if (scoreCtx) {
         const scoreData = @json($scoreDistribution ?? [0, 0, 0, 0, 0, 0]);
 
-        new Chart(scoreCtx, {
-            type: 'bar',
-             {
-                labels: ['0-49', '50-59', '60-69', '70-79', '80-89', '90-100'],
-                datasets: [{
-                    label: 'Jumlah Siswa',
-                     scoreData,
-                    backgroundColor: '#3b82f6',
-                    borderColor: '#2563eb',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Jumlah Siswa'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Rentang Nilai'
+        if (typeof Chart !== 'undefined') {
+            new Chart(scoreCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-49', '50-59', '60-69', '70-79', '80-89', '90-100'],
+                    datasets: [{
+                        label: 'Jumlah Siswa',
+                        data: scoreData,
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#2563eb',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah Siswa'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Rentang Nilai'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 });
 
-function exportPDF() {
+function exportPDF(event) {
     const button = event.target.closest('button');
     button.disabled = true;
     button.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> Mengekspor...';

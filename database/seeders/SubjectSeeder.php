@@ -3,23 +3,50 @@
 namespace Database\Seeders;
 
 use App\Models\Subject;
+use App\Models\Jurusan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class SubjectSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        $admin = User::where('role', 'admin')->first();
+        // Clear existing subjects
+        Subject::query()->delete();
 
-        if (!$admin) {
-            $this->command->error('❌ Tidak ada user dengan role "admin". Silakan jalankan UserSeeder terlebih dahulu.');
-            return;
+        // Get admin user for created_by
+        $admin = User::where('role', 'admin')->first();
+        $createdBy = $admin ? $admin->id : 1;
+
+        // Get jurusan data
+        $jurusanList = Jurusan::all();
+        
+        $subjects = [];
+
+        // Subjects for each jurusan
+        foreach ($jurusanList as $jurusan) {
+            $mataPelajaran = $jurusan->mata_pelajaran;
+            
+            if (is_array($mataPelajaran)) {
+                foreach ($mataPelajaran as $index => $namaMapel) {
+                    $subjects[] = [
+                        'name' => $namaMapel,
+                        'code' => $jurusan->kode . '-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT),
+                        'description' => "Mata Pelajaran {$namaMapel} untuk jurusan {$jurusan->nama}",
+                        'is_active' => true,
+                        'created_by' => $createdBy,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
         }
 
-        // Hapus data lama agar tidak duplikat
-        Subject::whereNotNull('id')->delete();
-
+        // Additional general subjects
+        $generalSubjects = [
         $subjects = [
             [
                 'name' => 'Keperawatan Dasar',

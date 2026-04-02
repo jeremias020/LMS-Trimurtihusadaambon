@@ -10,25 +10,17 @@ class Jurusan extends Model
 {
     use HasFactory;
 
-    protected $table = 'jurusan';
+    protected $table = 'jurusans';
 
     protected $fillable = [
-        'nama',
-        'kode',
-        'deskripsi',
-        'mata_pelajaran',
-        'kapasitas_total',
-        'status'
+        'name',
+        'code',
+        'description'
     ];
 
     protected $casts = [
-        'mata_pelajaran' => 'array',
-        'status' => 'boolean'
-    ];
-
-    protected $attributes = [
-        'status' => true,
-        'mata_pelajaran' => '[]'
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     /**
@@ -44,7 +36,7 @@ class Jurusan extends Model
      */
     public function siswa(): HasMany
     {
-        return $this->hasMany(User::class, 'jurusan_id')->where('role', 'siswa');
+        return $this->hasMany(Student::class, 'jurusan_id')->where('is_active', true);
     }
 
     /**

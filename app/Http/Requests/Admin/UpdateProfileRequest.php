@@ -34,6 +34,7 @@ class UpdateProfileRequest extends FormRequest
             'address' => 'nullable|string',
             'birth_date' => 'nullable|date',
             'gender' => 'nullable|in:L,P',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ];
     }
 

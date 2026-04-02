@@ -48,14 +48,8 @@
             </div>
             <p class="text-gray-600 mb-4">Laporan kegiatan praktikum dan penilaian</p>
             <div class="space-y-2">
-                <a href="{{ route('guru.laporan.praktik') }}" class="block text-blue-600 hover:text-blue-800" aria-label="Laporan Praktikum">
+                <a href="{{ route('guru.reports.practical') }}" class="block text-blue-600 hover:text-blue-800" aria-label="Laporan Praktikum">
                     • Laporan Praktikum
-                </a>
-                <a href="{{ route('guru.laporan.praktik.nilai') }}" class="block text-blue-600 hover:text-blue-800" aria-label="Laporan Nilai Praktikum">
-                    • Laporan Nilai Praktikum
-                </a>
-                <a href="{{ route('guru.laporan.praktik.peserta') }}" class="block text-blue-600 hover:text-blue-800" aria-label="Laporan Peserta Praktikum">
-                    • Laporan Peserta Praktikum
                 </a>
             </div>
         </div>

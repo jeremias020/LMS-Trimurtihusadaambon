@@ -10,29 +10,70 @@ class KriteriaPenilaian extends Model
 {
     use HasFactory;
 
-    protected $table = 'kriteria_penilaian';
+    protected $table = 'assessment_criteria';
 
     protected $fillable = [
-        'nama',
-        'kategori',
-        'bobot',
-        'deskripsi',
-        'sop_checklist',
-        'mata_praktik',
-        'tingkat_kelas',
-        'status'
+        'name',
+        'description',
+        'weight',
+        'max_score',
+        'subject_id',
+        'is_active'
     ];
 
     protected $casts = [
-        'sop_checklist' => 'array',
-        'bobot' => 'decimal:2',
-        'status' => 'boolean'
+        'weight' => 'float',
+        'max_score' => 'integer',
+        'is_active' => 'boolean',
+        'sop_checklist' => 'array'
     ];
 
     protected $attributes = [
-        'status' => true,
-        'sop_checklist' => '[]'
+        'is_active' => true,
+        'weight' => 0.10,
+        'max_score' => 100
     ];
+
+    // Field aliases for compatibility
+    public function getNamaAttribute()
+    {
+        return $this->name;
+    }
+
+    public function setNamaAttribute($value)
+    {
+        $this->attributes['name'] = $value;
+    }
+
+    public function getDeskripsiAttribute()
+    {
+        return $this->description;
+    }
+
+    public function setDeskripsiAttribute($value)
+    {
+        $this->attributes['description'] = $value;
+    }
+
+    public function getBobotAttribute()
+    {
+        return $this->weight;
+    }
+
+    public function setBobotAttribute($value)
+    {
+        $this->attributes['weight'] = $value;
+    }
+
+    public function getStatusAttribute()
+    {
+        return $this->is_active;
+    }
+
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['is_active'] = $value;
+    }
 
     // Kategori penilaian yang tersedia
     const KATEGORI_PERSIAPAN = 'persiapan';
@@ -115,7 +156,7 @@ class KriteriaPenilaian extends Model
      */
     public function getBobotPersenAttribute()
     {
-        return ($this->bobot * 100) . '%';
+        return $this->bobot . '%'; // Bobot already in integer format (45 = 45%)
     }
 
     /**
@@ -138,7 +179,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Persiapan Alat dan Bahan',
                 'kategori' => self::KATEGORI_PERSIAPAN,
-                'bobot' => 0.20,
+                'bobot' => 20,
                 'deskripsi' => 'Kelengkapan dan kesesuaian alat serta bahan yang disiapkan',
                 'mata_praktik' => 'Keperawatan Dasar',
                 'tingkat_kelas' => self::TINGKAT_X,
@@ -153,7 +194,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Pelaksanaan Tindakan Keperawatan',
                 'kategori' => self::KATEGORI_PELAKSANAAN,
-                'bobot' => 0.40,
+                'bobot' => 40,
                 'deskripsi' => 'Ketepatan dan keterampilan dalam melaksanakan tindakan',
                 'mata_praktik' => 'Keperawatan Dasar',
                 'tingkat_kelas' => self::TINGKAT_X,
@@ -168,7 +209,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Hasil dan Evaluasi',
                 'kategori' => self::KATEGORI_HASIL,
-                'bobot' => 0.25,
+                'bobot' => 25,
                 'deskripsi' => 'Kualitas hasil tindakan dan kemampuan evaluasi',
                 'mata_praktik' => 'Keperawatan Dasar',
                 'tingkat_kelas' => self::TINGKAT_X,
@@ -183,7 +224,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Sikap Profesional',
                 'kategori' => self::KATEGORI_SIKAP,
-                'bobot' => 0.15,
+                'bobot' => 15,
                 'deskripsi' => 'Sikap dan perilaku profesional selama praktik',
                 'mata_praktik' => 'Keperawatan Dasar',
                 'tingkat_kelas' => self::TINGKAT_X,
@@ -207,7 +248,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Persiapan dan Identifikasi',
                 'kategori' => self::KATEGORI_PERSIAPAN,
-                'bobot' => 0.25,
+                'bobot' => 25,
                 'deskripsi' => 'Persiapan workspace dan identifikasi obat/bahan',
                 'mata_praktik' => 'Farmasetika',
                 'tingkat_kelas' => self::TINGKAT_XI,
@@ -222,7 +263,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Teknik Pembuatan/Peracikan',
                 'kategori' => self::KATEGORI_PELAKSANAAN,
-                'bobot' => 0.35,
+                'bobot' => 35,
                 'deskripsi' => 'Keterampilan dalam pembuatan/peracikan obat',
                 'mata_praktik' => 'Farmasetika',
                 'tingkat_kelas' => self::TINGKAT_XI,
@@ -237,7 +278,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Kontrol Kualitas dan Kemasan',
                 'kategori' => self::KATEGORI_HASIL,
-                'bobot' => 0.25,
+                'bobot' => 25,
                 'deskripsi' => 'Pemeriksaan kualitas dan pengemasan hasil',
                 'mata_praktik' => 'Farmasetika',
                 'tingkat_kelas' => self::TINGKAT_XI,
@@ -252,7 +293,7 @@ class KriteriaPenilaian extends Model
             [
                 'nama' => 'Etika dan Keselamatan Kerja',
                 'kategori' => self::KATEGORI_SIKAP,
-                'bobot' => 0.15,
+                'bobot' => 15,
                 'deskripsi' => 'Penerapan etika profesi dan K3',
                 'mata_praktik' => 'Farmasetika',
                 'tingkat_kelas' => self::TINGKAT_XI,
@@ -279,10 +320,21 @@ class KriteriaPenilaian extends Model
         
         foreach ($allKriteria as $kriteria) {
             self::updateOrCreate([
-                'nama' => $kriteria['nama'],
+                'name' => $kriteria['nama'],
                 'mata_praktik' => $kriteria['mata_praktik'],
                 'tingkat_kelas' => $kriteria['tingkat_kelas']
-            ], $kriteria);
+            ], [
+                'name' => $kriteria['nama'],
+                'description' => $kriteria['deskripsi'] ?? null,
+                'weight' => $kriteria['bobot'] ?? 0.10,
+                'max_score' => $kriteria['max_score'] ?? 100,
+                'subject_id' => null,
+                'code' => null,
+                'is_active' => true,
+                'mata_praktik' => $kriteria['mata_praktik'],
+                'tingkat_kelas' => $kriteria['tingkat_kelas'],
+                'sop_checklist' => $kriteria['sop_checklist'] ?? []
+            ]);
         }
     }
 }

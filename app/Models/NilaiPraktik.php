@@ -11,23 +11,20 @@ class NilaiPraktik extends Model
 {
     use HasFactory;
 
-    protected $table = 'nilai_praktik';
+    protected $table = 'practical_scores';
 
     protected $fillable = [
+        'practical_id',
         'siswa_id',
-        'guru_id',
-        'mata_praktik',
-        'tanggal_praktik',
-        'total_nilai',
-        'grade',
-        'feedback_otomatis',
-        'catatan_guru',
-        'status'
+        'score',
+        'feedback',
+        'graded_by',
+        'graded_at'
     ];
 
     protected $casts = [
-        'tanggal_praktik' => 'date',
-        'total_nilai' => 'decimal:2'
+        'graded_at' => 'date',
+        'score' => 'decimal:2'
     ];
 
     const STATUS_DRAFT = 'draft';
@@ -48,15 +45,23 @@ class NilaiPraktik extends Model
      */
     public function siswa(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'siswa_id');
+        return $this->belongsTo(User::class, 'siswa_id', 'id');
     }
 
     /**
-     * Relationship dengan guru
+     * Relationship dengan guru yang memberi nilai
      */
     public function guru(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'guru_id');
+        return $this->belongsTo(User::class, 'graded_by');
+    }
+
+    /**
+     * Relationship dengan practical
+     */
+    public function practical(): BelongsTo
+    {
+        return $this->belongsTo(Practical::class, 'practical_id');
     }
 
     /**
@@ -88,15 +93,15 @@ class NilaiPraktik extends Model
      */
     public function scopeByGuru($query, $guruId)
     {
-        return $query->where('guru_id', $guruId);
+        return $query->where('graded_by', $guruId);
     }
 
     /**
-     * Scope berdasarkan mata praktik
+     * Scope berdasarkan practical
      */
-    public function scopeByMataPraktik($query, $mataPraktik)
+    public function scopeByPractical($query, $practicalId)
     {
-        return $query->where('mata_praktik', $mataPraktik);
+        return $query->where('practical_id', $practicalId);
     }
 
     /**
@@ -146,7 +151,7 @@ class NilaiPraktik extends Model
         foreach ($this->detailPenilaian as $detail) {
             $kriteria = $detail->kriteria;
             $skorNormalized = ($detail->skor / 4) * 100; // Convert 1-4 scale to 0-100
-            $nilaiTerbobot = $skorNormalized * $kriteria->bobot;
+            $nilaiTerbobot = $skorNormalized * ($kriteria->bobot / 100); // Convert integer bobot to percentage
             $totalNilai += $nilaiTerbobot;
         }
         

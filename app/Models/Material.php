@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Material extends Model
 {
@@ -12,23 +13,18 @@ class Material extends Model
 
     protected $fillable = [
         'guru_id',
-        'subject_id',
-        'kelas_id',
-        'judul',
-        'category',
-        'description',
-        'file',
-        'file_path',
-        'file_size',
-        'file_type',
-        'mime_type',
-        'is_published',
+        'class_subject_id',
+        'title',
+        'content',
+        'file_url',
+        'video_url',
+        'published_at',
         'views_count',
         'downloads_count',
     ];
 
     protected $casts = [
-        'is_published' => 'boolean',
+        'published_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -63,7 +59,7 @@ class Material extends Model
     // Scopes
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->whereNotNull('published_at');
     }
 
     public function scopeByGuru($query, $guruId)
@@ -90,6 +86,11 @@ class Material extends Model
     public function getFileSizeFormattedAttribute()
     {
         $bytes = $this->file_size;
+        
+        if (!$bytes) {
+            return 'Unknown';
+        }
+        
         if ($bytes >= 1073741824) {
             return number_format($bytes / 1073741824, 2) . ' GB';
         } elseif ($bytes >= 1048576) {

@@ -319,7 +319,7 @@
         // Set minimum datetime to current time
         const now = new Date();
         const localDateTime = now.toISOString().slice(0, 16);
-        document.getElementById('due_date').min = localDateTime;
+        document.getElementById('deadline').min = localDateTime;
 
         // File size validation
         const fileInput = document.getElementById('attachment');

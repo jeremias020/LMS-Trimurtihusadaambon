@@ -102,9 +102,9 @@
                         @endif
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions') }}">Semua Tipe</a></li>
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions', ['type' => 'assignment']) }}">Tugas</a></li>
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions', ['type' => 'practical']) }}">Praktikum</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index') }}">Semua Tipe</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index', ['type' => 'assignment']) }}">Tugas</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index', ['type' => 'practical']) }}">Praktikum</a></li>
                     </ul>
                 </div>
 
@@ -118,10 +118,10 @@
                         @endif
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions') }}">Semua Status</a></li>
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions', ['status' => 'submitted']) }}">Submitted</a></li>
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions', ['status' => 'graded']) }}">Graded</a></li>
-                        <li><a class="dropdown-item" href="{{ route('guru.submissions', ['status' => 'returned']) }}">Returned</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index') }}">Semua Status</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index', ['status' => 'submitted']) }}">Submitted</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index', ['status' => 'graded']) }}">Graded</a></li>
+                        <li><a class="dropdown-item" href="{{ route('guru.submissions.index', ['status' => 'returned']) }}">Returned</a></li>
                     </ul>
                 </div>
             </div>
@@ -230,7 +230,7 @@
                             </a>
                         </div>
                     @else
-                        <a href="{{ route('guru.submissions') }}" class="btn btn-outline-primary">
+                        <a href="{{ route('guru.submissions.index') }}" class="btn btn-outline-primary">
                             <i class="fas fa-times me-1"></i> Hapus Filter
                         </a>
                     @endif

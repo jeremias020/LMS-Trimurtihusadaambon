@@ -10,6 +10,7 @@ use App\Models\Attendance;
 use App\Models\PracticalScore;
 use App\Models\AssignmentSubmission;
 use App\Models\MaterialDownload;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -29,111 +30,186 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        $siswa = Auth::user(); // ✅ Dapatkan model lengkap
+        $siswa = Auth::user();
         $siswaId = $siswa->id;
         
         // Load siswa relation with kelas to get kelas_id
         $siswa->load('siswa.kelas');
-        $kelasId = $siswa->kelas_id; // Using the accessor we created
+        $kelasId = $siswa->siswa->kelas_id ?? null;
 
+        // Stats for dashboard
         $stats = [
-            'available_materials' => Material::where('is_published', true)
+            'total_materials' => Material::whereNotNull('published_at')
                 ->where(function($query) use ($kelasId) {
                     $query->where('kelas_id', $kelasId)
-                          ->orWhereNull('kelas_id'); // Include materials without specific class
+                          ->orWhereNull('kelas_id');
                 })
                 ->count(),
-            'active_assignments' => Assignment::where('is_published', true)
-                ->where(function($query) use ($kelasId) {
-                    $query->where('kelas_id', $kelasId)
-                          ->orWhereNull('kelas_id'); // Include assignments without specific class
-                })
-                ->where('deadline', '>', now())
+            'completed_assignments' => AssignmentSubmission::where('siswa_id', $siswaId)
+                ->whereNotNull('score')
                 ->count(),
-            'pending_assignments' => $this->getPendingAssignmentsCount($siswaId, $kelasId), // ✅ Use kelas_id
-            'submitted_assignments' => AssignmentSubmission::where('siswa_id', $siswaId)->count(),
-            'practicals_count' => Practical::where('is_published', true)
-                ->where(function($query) use ($kelasId) {
-                    $query->where('kelas_id', $kelasId)
-                          ->orWhereNull('kelas_id'); // Include practicals without specific class
-                })
+            'completed_practicals' => PracticalScore::where('siswa_id', $siswaId)
+                ->whereNotNull('score')
                 ->count(),
-            'attendance_rate' => $this->calculateAttendanceRate($siswaId),
-            'downloaded_materials' => MaterialDownload::where('siswa_id', $siswaId)->count(),
+            'attendance_percentage' => $this->calculateAttendanceRate($siswaId),
+            'average_score' => $this->getAverageScore($siswaId),
+            'attendance_count' => Attendance::where('siswa_id', $siswaId)
+                ->where('status', 'hadir')
+                ->count(),
+            'rank' => $this->getStudentRank($siswaId, $kelasId),
         ];
 
-        $upcomingAssignments = Assignment::with(['submissions' => function($query) use ($siswaId) {
-            $query->where('siswa_id', $siswaId);
-        }])
-        ->where('is_published', true)
-        ->where(function($query) use ($kelasId) {
-            $query->where('kelas_id', $kelasId)
-                  ->orWhereNull('kelas_id'); // Include assignments without specific class
-        })
-        ->where('deadline', '>', now())
-        ->orderBy('deadline', 'asc')
-        ->take(5)
-        ->get();
-
+        // Recent materials
         $recentMaterials = Material::with('guru')
-            ->where('is_published', true)
-            ->where(function($query) use ($kelasId) {
-                $query->where('kelas_id', $kelasId)
-                      ->orWhereNull('kelas_id'); // Include materials without specific class
-            })
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $recentScores = PracticalScore::with(['practical', 'criteria'])
-            ->where('siswa_id', $siswaId)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $overdueAssignments = Assignment::where('is_published', true)
-            ->where(function($query) use ($kelasId) {
-                $query->where('kelas_id', $kelasId)
-                      ->orWhereNull('kelas_id'); // Include assignments without specific class
-            })
-            ->where('deadline', '<', now())
-            ->whereDoesntHave('submissions', function($query) use ($siswaId) {
-                $query->where('siswa_id', $siswaId);
-            })
-            ->count();
-
-        $todayAttendance = Attendance::where('siswa_id', $siswaId)
-            ->whereDate('tanggal', Carbon::today())
-            ->first();
-
-        $notifications = $this->getNotifications($siswaId, $kelasId); // ✅ Use kelas_id
-
-        // Variables for view compatibility
-        $newMaterialsCount = Material::where('is_published', true)
+            ->whereNotNull('published_at')
             ->where(function($query) use ($kelasId) {
                 $query->where('kelas_id', $kelasId)
                       ->orWhereNull('kelas_id');
             })
-            ->where('created_at', '>=', now()->subDays(7))
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Upcoming deadlines
+        $upcomingDeadlines = $this->getUpcomingDeadlines($siswaId, $kelasId);
+
+        // Variables for backward compatibility
+        $newMaterialsCount = $stats['total_materials'];
+        $pendingAssignmentsCount = $this->getPendingAssignmentsCount($siswaId, $kelasId);
+        $upcomingPracticalsCount = Practical::whereNotNull('published_at')
+            ->where(function($query) use ($kelasId) {
+                $query->where('kelas_id', $kelasId)
+                      ->orWhereNull('kelas_id');
+            })
             ->count();
-            
-        $pendingAssignmentsCount = $stats['pending_assignments'];
-        $upcomingPracticalsCount = $stats['practicals_count'];
-        $attendancePercentage = $stats['attendance_rate'];
+        $attendancePercentage = $stats['attendance_percentage'];
 
         return view('siswa.dashboard', compact(
             'stats',
-            'upcomingAssignments',
             'recentMaterials',
-            'recentScores',
-            'overdueAssignments',
-            'todayAttendance',
-            'notifications',
+            'upcomingDeadlines',
             'newMaterialsCount',
             'pendingAssignmentsCount',
             'upcomingPracticalsCount',
             'attendancePercentage'
         ));
+    }
+
+    protected function getUpcomingDeadlines($siswaId, $kelasId)
+    {
+        $deadlines = [];
+        
+        // Get upcoming assignments
+        $assignments = Assignment::where(function($query) use ($kelasId) {
+                $query->where('kelas_id', $kelasId)
+                      ->orWhereNull('kelas_id');
+            })
+            ->where('due_date', '>', now())
+            ->whereDoesntHave('submissions', function($query) use ($siswaId) {
+                $query->where('siswa_id', $siswaId);
+            })
+            ->orderBy('due_date', 'asc')
+            ->take(5)
+            ->get();
+            
+        foreach ($assignments as $assignment) {
+            $deadlines[] = (object)[
+                'id' => $assignment->id,
+                'assignment_id' => $assignment->id,
+                'title' => $assignment->title,
+                'type' => 'assignment',
+                'deadline' => $assignment->deadline,
+                'days_left' => now()->diffInDays($assignment->deadline, false)
+            ];
+        }
+        
+        // Get upcoming practicals
+        $urgentAssignments = Assignment::where(function($query) use ($kelasId) {
+                $query->where('kelas_id', $kelasId)
+                      ->orWhereNull('kelas_id'); // Include assignments without specific class
+            })
+            ->where('due_date', '>', now())
+            ->whereDoesntHave('submissions', function($query) use ($siswaId) {
+                $query->where('siswa_id', $siswaId);
+            })
+            ->orderBy('due_date', 'asc')
+            ->take(3)
+            ->get();
+            
+        $practicals = Practical::whereNotNull('published_at')
+            ->where(function($query) use ($kelasId) {
+                $query->where('kelas_id', $kelasId)
+                      ->orWhereNull('kelas_id');
+            })
+            ->where('date', '>', now())
+            ->whereDoesntHave('scores', function($query) use ($siswaId) {
+                $query->where('siswa_id', $siswaId);
+            })
+            ->orderBy('date', 'asc')
+            ->take(5)
+            ->get();
+            
+        foreach ($practicals as $practical) {
+            $deadlines[] = (object)[
+                'id' => $practical->id,
+                'praktikum_id' => $practical->id,
+                'title' => $practical->judul,
+                'type' => 'practical',
+                'deadline' => $practical->date,
+                'days_left' => now()->diffInDays($practical->date, false)
+            ];
+        }
+        
+        // Sort by deadline
+        usort($deadlines, function($a, $b) {
+            return $a->deadline <=> $b->deadline;
+        });
+        
+        return array_slice($deadlines, 0, 5);
+    }
+    
+    protected function getAverageScore($siswaId)
+    {
+        $assignmentScores = AssignmentSubmission::where('siswa_id', $siswaId)
+            ->whereNotNull('score')
+            ->pluck('score');
+            
+        $practicalScores = PracticalScore::where('siswa_id', $siswaId)
+            ->whereNotNull('score')
+            ->pluck('score');
+            
+        $allScores = $assignmentScores->merge($practicalScores);
+        
+        return $allScores->isNotEmpty() ? round($allScores->avg(), 2) : 0;
+    }
+    
+    protected function getStudentRank($siswaId, $kelasId)
+    {
+        if (!$kelasId) return '-';
+        
+        // Get all students in the same class
+        $classStudents = Student::where('kelas_id', $kelasId)->pluck('id');
+        
+        // Calculate average scores for all students
+        $studentScores = [];
+        foreach ($classStudents as $studentId) {
+            $avgScore = $this->getAverageScore($studentId);
+            $studentScores[] = ['student_id' => $studentId, 'score' => $avgScore];
+        }
+        
+        // Sort by score descending
+        usort($studentScores, function($a, $b) {
+            return $b['score'] <=> $a['score'];
+        });
+        
+        // Find current student's rank
+        foreach ($studentScores as $index => $studentScore) {
+            if ($studentScore['student_id'] == $siswaId) {
+                return $index + 1;
+            }
+        }
+        
+        return '-';
     }
 
     protected function getPendingAssignmentsCount($siswaId, $kelasId)
@@ -142,12 +218,8 @@ class DashboardController extends Controller
                 $join->on('assignments.id', '=', 'assignment_submissions.assignment_id')
                      ->where('assignment_submissions.siswa_id', '=', $siswaId);
             })
-            ->where('assignments.is_published', true)
-            ->where(function($query) use ($kelasId) {
-                $query->where('assignments.kelas_id', $kelasId)
-                      ->orWhereNull('assignments.kelas_id'); // Include assignments without specific class
-            })
-            ->where('assignments.deadline', '>', now())
+            ->where('assignments.deleted_at', null)
+            ->where('assignments.due_date', '>', now())
             ->whereNull('assignment_submissions.id')
             ->count();
     }
@@ -159,8 +231,8 @@ class DashboardController extends Controller
 
         $presentDays = Attendance::where('siswa_id', $siswaId)
             ->where('status', 'hadir')
-            ->whereMonth('tanggal', $month)
-            ->whereYear('tanggal', $year)
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
             ->count();
 
         $workingDays = $this->getWorkingDays($month, $year);
@@ -195,8 +267,8 @@ class DashboardController extends Controller
                 $query->where('kelas_id', $kelasId)
                       ->orWhereNull('kelas_id'); // Include assignments without specific class
             })
-            ->where('deadline', '>', now())
-            ->where('deadline', '<=', now()->addDays(2))
+            ->where('due_date', '>', now())
+            ->where('due_date', '<=', now()->addDays(2))
             ->whereDoesntHave('submissions', function($query) use ($siswaId) {
                 $query->where('siswa_id', $siswaId);
             })
@@ -211,7 +283,7 @@ class DashboardController extends Controller
         }
 
         $todayAttendance = Attendance::where('siswa_id', $siswaId)
-            ->whereDate('tanggal', Carbon::today())
+            ->whereDate('date', Carbon::today())
             ->exists();
 
         if (!$todayAttendance && !Carbon::now()->isWeekend()) {
@@ -232,17 +304,19 @@ class DashboardController extends Controller
     {
         $siswaId = Auth::id();
 
-        $attendanceData = Attendance::selectRaw('DATE(tanggal) as date, COUNT(*) as count, status')
-            ->where('siswa_id', $siswaId)
-            ->where('tanggal', '>=', Carbon::now()->subDays(30))
+        $attendanceData = Attendance::selectRaw('DATE(date) as date, COUNT(*) as count, status')
+            ->where('student_id', $siswaId)
+            ->where('date', '>=', Carbon::now()->subDays(30))
             ->groupBy('date', 'status')
+            ->orderBy('date')
             ->get();
 
-        $scoreData = AssignmentSubmission::selectRaw('DATE(graded_at) as date, AVG(score) as average_score')
-            ->where('siswa_id', $siswaId)
+        $scoreData = AssignmentSubmission::selectRaw('DATE(created_at) as date, AVG(score) as average_score')
+            ->where('student_id', $siswaId)
             ->whereNotNull('score')
-            ->where('graded_at', '>=', Carbon::now()->subDays(30))
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
             ->groupBy('date')
+            ->orderBy('date')
             ->get();
 
         return response()->json([

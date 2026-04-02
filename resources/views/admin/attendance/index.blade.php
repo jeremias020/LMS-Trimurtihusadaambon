@@ -222,8 +222,8 @@
                             </div>
                         </td>
                         <td>
-                            <div class="fw-bold">{{ $attendance->siswa->name ?? 'N/A' }}</div>
-                            <small class="text-muted">{{ $attendance->siswa->email ?? '' }}</small>
+                            <div class="fw-bold">{{ $attendance->siswa?->name ?? 'N/A' }}</div>
+                            <small class="text-muted">{{ $attendance->siswa?->email ?? '' }}</small>
                         </td>
                         <td>{{ $attendance->tanggal->format('d/m/Y') }}</td>
                         <td>

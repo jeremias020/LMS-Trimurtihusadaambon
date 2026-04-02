@@ -1,170 +1,144 @@
-<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar" role="navigation">
-    <div class="position-sticky pt-3">
-        <div class="sidebar-header text-center py-4">
-            <h6 class="text-muted">Menu Navigasi</h6>
-        </div>
+<nav class="sidebar" id="sidebar">
+    <!-- Sidebar Brand -->
+    <div class="p-3 border-bottom border-secondary">
+        @php
+            $role = Auth::check() ? Auth::user()->role : null;
+        @endphp
+        @if($role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-white text-decoration-none">
+                <div class="bg-light rounded p-2 me-2">
+                    <i class="fas fa-graduation-cap text-primary"></i>
+                </div>
+                <div class="sidebar-brand-text">
+                    <div class="fw-bold fs-6">LMS Trimurti</div>
+                    <small class="text-light opacity-75">Admin Panel</small>
+                </div>
+            </a>
+        @elseif($role === 'guru')
+            <a href="{{ route('guru.dashboard') }}" class="d-flex align-items-center text-white text-decoration-none">
+                <div class="bg-light rounded p-2 me-2">
+                    <i class="fas fa-graduation-cap text-primary"></i>
+                </div>
+                <div class="sidebar-brand-text">
+                    <div class="fw-bold fs-6">LMS Trimurti</div>
+                    <small class="text-light opacity-75">Guru Portal</small>
+                </div>
+            </a>
+        @elseif($role === 'student')
+            <a href="{{ route('siswa.dashboard') }}" class="text-white text-decoration-none">
+                <i class="fas fa-user-graduate me-2"></i>
+                <span class="fw-bold">LMS Siswa</span>
+            </a>
+        @else
+            <span class="fw-bold">LMS Trimurti</span>
+        @endif
+    </div>
 
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                   href="{{ route('dashboard') }}"
-                   title="Dashboard"
-                   aria-label="Dashboard">
-                    <i class="fas fa-home me-2"></i> Dashboard
-                </a>
-            </li>
-
-            @if(Auth::user()->role === 'admin')
-            <!-- Admin Menu -->
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
-                   href="{{ route('admin.users.index') }}"
-                   title="Kelola Pengguna"
-                   aria-label="Kelola Pengguna">
-                    <i class="fas fa-users me-2"></i> Manage Users
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
-                   href="{{ route('admin.settings.index') }}"
-                   title="Pengaturan Sistem"
-                   aria-label="Pengaturan Sistem">
-                    <i class="fas fa-cog me-2"></i> Settings
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"
-                   href="{{ route('admin.reports.index') }}"
-                   title="Laporan Sistem"
-                   aria-label="Laporan Sistem">
-                    <i class="fas fa-chart-bar me-2"></i> Reports
-                </a>
-            </li>
-
-            @elseif(Auth::user()->role === 'guru')
-            <!-- Guru Menu -->
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.materials.*') ? 'active' : '' }}"
-                   href="{{ route('guru.materials.index') }}"
-                   title="Materi Pembelajaran"
-                   aria-label="Materi Pembelajaran">
-                    <i class="fas fa-book me-2"></i> Materi
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.assignments.*') ? 'active' : '' }}"
-                   href="{{ route('guru.assignments.index') }}"
-                   title="Tugas & Quiz"
-                   aria-label="Tugas & Quiz">
-                    <i class="fas fa-tasks me-2"></i> Tugas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.praktikum.*') ? 'active' : '' }}"
-                   href="{{ route('guru.praktikum.index') }}"
-                   title="Praktikum"
-                   aria-label="Praktikum">
-                    <i class="fas fa-flask me-2"></i> Praktikum
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.absensi.*') ? 'active' : '' }}"
-                   href="{{ route('guru.absensi.index') }}"
-                   title="Absensi Siswa"
-                   aria-label="Absensi Siswa">
-                    <i class="fas fa-calendar-check me-2"></i> Absensi
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.penilaian.*') ? 'active' : '' }}"
-                   href="{{ route('guru.penilaian.index') }}"
-                   title="Penilaian Siswa"
-                   aria-label="Penilaian Siswa">
-                    <i class="fas fa-star me-2"></i> Penilaian
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('guru.laporan.*') ? 'active' : '' }}"
-                   href="{{ route('guru.laporan.index') }}"
-                   title="Laporan Pembelajaran"
-                   aria-label="Laporan Pembelajaran">
-                    <i class="fas fa-file-alt me-2"></i> Laporan
-                </a>
-            </li>
-
-            @elseif(Auth::user()->role === 'siswa')
-            <!-- Siswa Menu -->
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('siswa.materials.*') ? 'active' : '' }}"
-                   href="{{ route('siswa.materials.index') }}"
-                   title="Materi Pembelajaran"
-                   aria-label="Materi Pembelajaran">
-                    <i class="fas fa-book me-2"></i> Materi
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('siswa.assignments.*') ? 'active' : '' }}"
-                   href="{{ route('siswa.assignments.index') }}"
-                   title="Daftar Tugas"
-                   aria-label="Daftar Tugas">
-                    <i class="fas fa-tasks me-2"></i> Tugas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('siswa.praktikum.*') ? 'active' : '' }}"
-                   href="{{ route('siswa.praktikum.index') }}"
-                   title="Praktikum"
-                   aria-label="Praktikum">
-                    <i class="fas fa-flask me-2"></i> Praktikum
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('siswa.nilai.*') ? 'active' : '' }}"
-                   href="{{ route('siswa.nilai.index') }}"
-                   title="Nilai Saya"
-                   aria-label="Nilai Saya">
-                    <i class="fas fa-chart-line me-2"></i> Nilai
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('siswa.absensi.*') ? 'active' : '' }}"
-                   href="{{ route('siswa.absensi.index') }}"
-                   title="Absensi Saya"
-                   aria-label="Absensi Saya">
-                    <i class="fas fa-calendar me-2"></i> Absensi
-                </a>
-            </li>
-
-            @else
-            <!-- Fallback Menu -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('profile.edit') }}" title="Edit Profil" aria-label="Edit Profil">
-                    <i class="fas fa-user me-2"></i> Profil
-                </a>
-            </li>
-            @endif
-        </ul>
-
-        <!-- Quick Actions -->
-        <div class="sidebar-footer mt-4 p-3 bg-light rounded">
-            <h6 class="text-muted mb-3">Aksi Cepat</h6>
-            <div class="d-grid gap-2">
-                @if(Auth::user()->role === 'guru')
-                <a href="{{ route('guru.materials.create') }}" class="btn btn-sm btn-outline-primary" title="Buat Materi Baru">
-                    <i class="fas fa-plus me-1"></i> Materi Baru
-                </a>
-                <a href="{{ route('guru.assignments.create') }}" class="btn btn-sm btn-outline-success" title="Buat Tugas Baru">
-                    <i class="fas fa-plus me-1"></i> Tugas Baru
-                </a>
-                @elseif(Auth::user()->role === 'siswa')
-                <a href="{{ route('siswa.assignments.index') }}" class="btn btn-sm btn-outline-warning" title="Tugas dengan Deadline Mendekat">
-                    <i class="fas fa-clock me-1"></i> Tugas Deadline
-                </a>
-                <a href="{{ route('siswa.nilai.index') }}" class="btn btn-sm btn-outline-info" title="Lihat Nilai Saya">
-                    <i class="fas fa-chart-line me-1"></i> Lihat Nilai
-                </a>
-                @endif
+    <!-- User Profile Section (Guru/Admin/Siswa) -->
+    @if($role === 'admin' || $role === 'guru' || $role === 'student')
+    <div class="p-3 border-bottom border-secondary">
+        <div class="d-flex align-items-center">
+            <img src="{{ Auth::user()->avatar_url ?? asset('images/default-avatar.png') }}"
+                 alt="Profile"
+                 class="rounded-circle me-2 d-block"
+                 style="width: 40px; height: 40px; object-fit: cover;">
+            <div class="sidebar-user-info flex-grow-1">
+                <div class="fw-medium text-white small">{{ Str::limit(Auth::user()->name, 15) }}</div>
+                <small class="text-light opacity-75">
+                    @if($role === 'admin') Super Administrator
+                    @elseif($role === 'guru') {{ Auth::user()->subject ? 'Guru ' . Str::limit(Auth::user()->subject, 10) : 'Guru' }}
+                    @elseif($role === 'student') {{ Auth::user()->class ? 'Siswa - ' . Auth::user()->class : 'Siswa' }}
+                    @endif
+                </small>
             </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Navigation Menu -->
+    <div class="sidebar-menu flex-grow-1">
+        <div class="p-2">
+            @if($role === 'admin')
+                <!-- Admin Menu -->
+                <a href="{{ route('admin.dashboard') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.dashboard') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tachometer-alt me-2 nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="{{ route('admin.users.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.users.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-users me-2 nav-icon"></i>
+                    <span class="nav-text">Users</span>
+                </a>
+                <a href="{{ route('admin.kriteria-penilaian.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.kriteria-penilaian.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-clipboard-list me-2 nav-icon"></i>
+                    <span class="nav-text">Kriteria Penilaian</span>
+                </a>
+                <a href="{{ route('admin.exam-schedules.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.exam-schedules.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-calendar-check me-2 nav-icon"></i>
+                    <span class="nav-text">Jadwal</span>
+                </a>
+                <a href="{{ route('admin.profile.edit') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.profile.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-user-cog me-2 nav-icon"></i>
+                    <span class="nav-text">Profile</span>
+                </a>
+            @elseif($role === 'guru')
+                <!-- Guru Menu -->
+                <a href="{{ route('guru.dashboard') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.dashboard') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tachometer-alt me-2 nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="{{ route('guru.materials.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.materials.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-book me-2 nav-icon"></i>
+                    <span class="nav-text">Materi</span>
+                </a>
+                <a href="{{ route('guru.assignments.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.assignments.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tasks me-2 nav-icon"></i>
+                    <span class="nav-text">Tugas & Quiz</span>
+                </a>
+                <a href="{{ route('guru.penilaian.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.penilaian.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-star me-2 nav-icon"></i>
+                    <span class="nav-text">Penilaian</span>
+                </a>
+                <a href="{{ route('guru.laporan.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.laporan.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-file-alt me-2 nav-icon"></i>
+                    <span class="nav-text">Laporan</span>
+                </a>
+                <a href="{{ route('guru.profile.edit') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('guru.profile.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-user-cog me-2 nav-icon"></i>
+                    <span class="nav-text">Profile</span>
+                </a>
+            @elseif($role === 'student')
+                <!-- Siswa Menu -->
+                <a href="{{ route('siswa.dashboard') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.dashboard') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tachometer-alt me-2 nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="{{ route('siswa.materials.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.materials.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-book me-2 nav-icon"></i>
+                    <span class="nav-text">Materi Pembelajaran</span>
+                </a>
+                <a href="{{ route('siswa.assignments.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.assignments.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tasks me-2 nav-icon"></i>
+                    <span class="nav-text">Tugas</span>
+                </a>
+                <a href="{{ route('siswa.reports.practical') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.reports.practical') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-flask me-2 nav-icon"></i>
+                    <span class="nav-text">Praktikum</span>
+                </a>
+                <a href="{{ route('siswa.reports.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.reports.index') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-chart-line me-2 nav-icon"></i>
+                    <span class="nav-text">Nilai</span>
+                </a>
+                <a href="{{ route('siswa.reports.attendance') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.reports.attendance') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-calendar-check me-2 nav-icon"></i>
+                    <span class="nav-text">Absensi</span>
+                </a>
+                <a href="{{ route('siswa.profile.edit') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('siswa.profile.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-user-cog me-2 nav-icon"></i>
+                    <span class="nav-text">Profil</span>
+                </a>
+            @else
+                <span class="text-muted">Silakan login untuk melihat menu.</span>
+            @endif
         </div>
     </div>
 </nav>

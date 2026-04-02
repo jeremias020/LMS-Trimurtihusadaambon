@@ -38,10 +38,9 @@ class MaterialController extends Controller
 
         $stats = [
             'total_materials' => Material::count(),
-            'published_materials' => Material::where('is_published', true)->count(),
-            'unpublished_materials' => Material::where('is_published', false)->count(),
+            'published_materials' => Material::whereNotNull('published_at')->count(),
+            'unpublished_materials' => Material::whereNull('published_at')->count(),
             'total_downloads' => MaterialDownload::count(),
-            'total_size' => Material::sum('file_size'),
         ];
 
         return view('admin.materials.index', compact('materials', 'stats'));

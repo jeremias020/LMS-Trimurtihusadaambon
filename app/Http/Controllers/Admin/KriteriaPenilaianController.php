@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\KriteriaPenilaian;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -20,12 +21,27 @@ class KriteriaPenilaianController extends Controller
      */
     public function index(): View
     {
-        $kriteria = KriteriaPenilaian::orderBy('mata_praktik')
-                                   ->orderBy('tingkat_kelas')
-                                   ->orderBy('kategori')
-                                   ->get();
-                                   
-        return view('admin.kriteria-penilaian.index', compact('kriteria'));
+        // If table doesn't exist yet (migrations not run), return empty view with guidance
+        if (!Schema::hasTable('assessment_criteria')) {
+            return view('admin.kriteria-penilaian.index', [
+                'kriteria' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
+                'error' => 'Tabel assessment_criteria belum ada. Jalankan: php artisan migrate',
+            ]);
+        }
+
+        try {
+            $kriteria = KriteriaPenilaian::orderBy('name')
+                                        ->orderBy('weight', 'desc')
+                                        ->paginate(20);
+
+            return view('admin.kriteria-penilaian.index', compact('kriteria'));
+        } catch (\Throwable $e) {
+            // Fallback empty collection if something unexpected happens
+            return view('admin.kriteria-penilaian.index', [
+                'kriteria' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
+                'error' => 'Gagal memuat data: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -35,8 +51,25 @@ class KriteriaPenilaianController extends Controller
     {
         $kategoriList = KriteriaPenilaian::getKategoriList();
         $tingkatKelasList = KriteriaPenilaian::getTingkatKelasList();
+        $subjects = \App\Models\MataPelajaran::where('is_active', true)
+            ->orderBy('name')
+            ->get();
         
-        return view('admin.kriteria-penilaian.create', compact('kategoriList', 'tingkatKelasList'));
+        return view('admin.kriteria-penilaian.create', compact('kategoriList', 'tingkatKelasList', 'subjects'));
+    }
+
+    /**
+     * Show the combined form for creating all categories at once
+     */
+    public function createCombined(): View
+    {
+        $tingkatKelasList = KriteriaPenilaian::getTingkatKelasList();
+        $kategoriList = KriteriaPenilaian::getKategoriList();
+        $subjects = \App\Models\MataPelajaran::where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.kriteria-penilaian.create-combined', compact('tingkatKelasList', 'kategoriList', 'subjects'));
     }
 
     /**
@@ -47,7 +80,7 @@ class KriteriaPenilaianController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'kategori' => 'required|in:persiapan,pelaksanaan,hasil,sikap',
-            'bobot' => 'required|numeric|min:0.01|max:1',
+            'bobot' => 'required|integer|min:1|max:100',
             'deskripsi' => 'nullable|string',
             'mata_praktik' => 'required|string|max:255',
             'tingkat_kelas' => 'required|in:X,XI,XII',
@@ -67,6 +100,62 @@ class KriteriaPenilaianController extends Controller
     }
 
     /**
+     * Store multiple kriteria at once (combined categories)
+     */
+    public function storeCombined(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'mata_praktik' => 'required|string|max:255',
+            'tingkat_kelas' => 'required|in:X,XI,XII',
+            'status' => 'nullable|boolean',
+            'categories' => 'required|array',
+            'categories.*.nama' => 'required|string|max:255',
+            'categories.*.bobot' => 'required|integer|min:1|max:100',
+            'categories.*.deskripsi' => 'nullable|string',
+            'categories.*.sop_checklist' => 'required|array|min:1',
+            'categories.*.sop_checklist.*' => 'required|string|max:255',
+        ]);
+
+        // Pastikan total bobot = 100 (100%)
+        $totalBobot = 0;
+        foreach ($validated['categories'] as $cat) {
+            $totalBobot += (int) $cat['bobot'];
+        }
+        if ($totalBobot !== 100) {
+            return back()
+                ->withInput()
+                ->with('error', 'Total bobot dari semua kategori harus sama dengan 100 (100%). Saat ini: ' . $totalBobot);
+        }
+
+        $status = (bool) ($validated['status'] ?? true);
+        $mapKeyToKategori = [
+            'persiapan' => 'persiapan',
+            'pelaksanaan' => 'pelaksanaan',
+            'hasil' => 'hasil',
+            'sikap' => 'sikap',
+        ];
+
+        foreach ($validated['categories'] as $key => $cat) {
+            $kategori = $mapKeyToKategori[$key] ?? $key; // fallback
+
+            KriteriaPenilaian::create([
+                'nama' => $cat['nama'],
+                'kategori' => $kategori,
+                'bobot' => $cat['bobot'],
+                'deskripsi' => $cat['deskripsi'] ?? null,
+                'sop_checklist' => array_values(array_filter($cat['sop_checklist'] ?? [])),
+                'mata_praktik' => $validated['mata_praktik'],
+                'tingkat_kelas' => $validated['tingkat_kelas'],
+                'status' => $status,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.kriteria-penilaian.index')
+            ->with('success', 'Semua kategori kriteria berhasil ditambahkan dalam satu kali input.');
+    }
+
+    /**
      * Display the specified kriteria
      */
     public function show(KriteriaPenilaian $kriteriaPenilaian): View
@@ -81,8 +170,11 @@ class KriteriaPenilaianController extends Controller
     {
         $kategoriList = KriteriaPenilaian::getKategoriList();
         $tingkatKelasList = KriteriaPenilaian::getTingkatKelasList();
+        $subjects = \App\Models\MataPelajaran::where('is_active', true)
+            ->orderBy('name')
+            ->get();
         
-        return view('admin.kriteria-penilaian.edit', compact('kriteriaPenilaian', 'kategoriList', 'tingkatKelasList'));
+        return view('admin.kriteria-penilaian.edit', compact('kriteriaPenilaian', 'kategoriList', 'tingkatKelasList', 'subjects'));
     }
 
     /**
@@ -93,7 +185,7 @@ class KriteriaPenilaianController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'kategori' => 'required|in:persiapan,pelaksanaan,hasil,sikap',
-            'bobot' => 'required|numeric|min:0.01|max:1',
+            'bobot' => 'required|integer|min:1|max:100',
             'deskripsi' => 'nullable|string',
             'mata_praktik' => 'required|string|max:255',
             'tingkat_kelas' => 'required|in:X,XI,XII',
@@ -117,11 +209,14 @@ class KriteriaPenilaianController extends Controller
      */
     public function destroy(KriteriaPenilaian $kriteriaPenilaian): RedirectResponse
     {
-        // Check if kriteria is being used
-        if ($kriteriaPenilaian->nilaiPraktik()->count() > 0) {
-            return redirect()
-                ->route('admin.kriteria-penilaian.index')
-                ->with('error', 'Tidak dapat menghapus kriteria yang sedang digunakan untuk penilaian.');
+        // Avoid querying non-existent tables during early setup
+        if (\Illuminate\Support\Facades\Schema::hasTable('detail_penilaian')) {
+            // Check if kriteria is being used
+            if ($kriteriaPenilaian->nilaiPraktik()->count() > 0) {
+                return redirect()
+                    ->route('admin.kriteria-penilaian.index')
+                    ->with('error', 'Tidak dapat menghapus kriteria yang sedang digunakan untuk penilaian.');
+            }
         }
 
         $kriteriaPenilaian->delete();
@@ -198,14 +293,14 @@ class KriteriaPenilaianController extends Controller
         }
         
         $totalBobot = $query->sum('bobot');
-        $newBobot = (float) $request->input('bobot', 0);
+        $newBobot = (int) $request->input('bobot', 0);
         $totalWithNew = $totalBobot + $newBobot;
-        
+
         return response()->json([
             'current_total' => $totalBobot,
             'new_total' => $totalWithNew,
-            'is_valid' => $totalWithNew <= 1.0,
-            'remaining' => 1.0 - $totalBobot
+            'is_valid' => $totalWithNew <= 100,
+            'remaining' => 100 - $totalBobot
         ]);
     }
 

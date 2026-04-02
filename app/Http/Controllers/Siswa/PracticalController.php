@@ -24,15 +24,25 @@ class PracticalController extends Controller
      */
     public function index(): View
     {
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
         $practicals = Practical::where('is_published', true)
-            ->where('class', Auth::user()->class) // ✅ Filter by class
-            ->with(['guru', 'scores' => function($query) {
+            ->where(function ($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
+            ->with(['guru', 'kelas', 'scores' => function($query) {
                 $query->where('siswa_id', Auth::id());
             }])
             ->withCount(['scores as graded' => function($query) {
                 $query->where('siswa_id', Auth::id());
             }])
-            ->latest()
+            ->latest('date')
             ->paginate(10);
 
         // ✅ Optimasi: Gunakan collection untuk statistik
@@ -60,9 +70,19 @@ class PracticalController extends Controller
      */
     public function show($id): View
     {
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
         $practical = Practical::where('is_published', true)
-            ->where('class', Auth::user()->class) // ✅ Filter by class
-            ->with('guru')
+            ->where(function ($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
+            ->with(['guru', 'kelas'])
             ->findOrFail($id);
 
         $scores = PracticalScore::with('criteria')
@@ -114,8 +134,18 @@ class PracticalController extends Controller
      */
     public function getScores($practicalId): JsonResponse
     {
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
         $practical = Practical::where('is_published', true)
-            ->where('class', Auth::user()->class) // ✅ Filter by class
+            ->where(function ($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
             ->findOrFail($practicalId);
 
         $scores = PracticalScore::with('criteria')
@@ -136,15 +166,24 @@ class PracticalController extends Controller
      */
     public function getProgress(): JsonResponse
     {
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
         $totalPracticals = Practical::where('is_published', true)
-            ->where('class', Auth::user()->class) // ✅ Filter by class
+            ->where(function ($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
             ->count();
 
         $gradedPracticals = PracticalScore::where('siswa_id', Auth::id())
             ->whereIn('practical_id', function($query) {
                 $query->select('id')
                     ->from('practicals')
-                    ->where('class', Auth::user()->class)
                     ->where('is_published', true);
             })
             ->distinct('practical_id')
@@ -165,13 +204,23 @@ class PracticalController extends Controller
      */
     public function upcoming(): JsonResponse
     {
+        $student = \App\Models\Student::where('user_id', Auth::id())->first();
+        $kelasId = $student->kelas_id ?? null;
+
         $upcomingPracticals = Practical::where('is_published', true)
-            ->where('class', Auth::user()->class) // ✅ Filter by class
-            ->where('tanggal', '>=', now())
+            ->where(function ($query) use ($kelasId) {
+                if ($kelasId) {
+                    $query->where('kelas_id', $kelasId)
+                          ->orWhereNull('kelas_id');
+                } else {
+                    $query->whereNull('kelas_id');
+                }
+            })
+            ->where('date', '>=', now())
             ->whereDoesntHave('scores', function($query) {
                 $query->where('siswa_id', Auth::id());
             })
-            ->orderBy('tanggal', 'asc')
+            ->orderBy('date', 'asc')
             ->take(5)
             ->get();
 

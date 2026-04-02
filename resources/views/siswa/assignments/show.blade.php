@@ -34,6 +34,9 @@
                         <div class="col-md-6">
                             <h5>Informasi Tugas</h5>
                             <table class="table table-sm">
+                                @php
+                                    $deadline = $assignment->due_date ?? $assignment->deadline ?? null;
+                                @endphp
                                 <tr>
                                     <th width="150">Mata Pelajaran</th>
                                     <td>{{ $assignment->subject ?? 'Tidak tersedia' }}</td>
@@ -45,12 +48,12 @@
                                 <tr>
                                     <th>Batas Waktu</th>
                                     <td>
-                                        <span title="{{ $assignment->due_date->translatedFormat('l, d F Y H:i') }}">
-                                            {{ $assignment->due_date->format('d M Y H:i') }}
+                                        <span title="{{ $deadline?->translatedFormat('l, d F Y H:i') ?? '-' }}">
+                                            {{ $deadline?->format('d M Y H:i') ?? '-' }}
                                         </span>
-                                        @if($assignment->due_date->isPast())
+                                        @if($deadline?->isPast())
                                             <span class="badge bg-danger ms-2">Terlambat</span>
-                                        @elseif($assignment->due_date->diffInHours(now()) <= 24)
+                                        @elseif($deadline && $deadline->diffInHours(now()) <= 24)
                                             <span class="badge bg-warning text-dark ms-2">Segera</span>
                                         @endif
                                     </td>
@@ -63,14 +66,11 @@
                         </div>
                         <div class="col-md-6">
                             <h5>Status Pengumpulan</h5>
-                            @php
-                                $submission = $assignment->submissions->where('user_id', Auth::id())->first();
-                            @endphp
                             @if($submission)
                                 <div class="alert alert-success">
                                     <i class="fas fa-check-circle"></i>
                                     <strong>Tugas telah dikumpulkan</strong>
-                                    <p class="mb-0">Pada: {{ $submission->submitted_at->format('d M Y H:i') }}</p>
+                                    <p class="mb-0">Pada: {{ $submission->submitted_at?->format('d M Y H:i') ?? '-' }}</p>
                                     @if($submission->score !== null)
                                         <p class="mb-0">Nilai: <strong class="text-info">{{ $submission->score }}/100</strong></p>
                                     @endif
@@ -131,7 +131,7 @@
                                 <i class="fas fa-download"></i> Unduh File yang Dikumpulkan
                             </a>
                         @endif
-                    @elseif($assignment->due_date->isPast())
+                    @elseif($deadline?->isPast())
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-circle"></i>
                             <strong>Batas waktu pengumpulan telah berlalu.</strong>
@@ -148,15 +148,15 @@
                                 <input type="file"
                                        class="form-control"
                                        id="submission_file"
-                                       name="submission_file"
+                                       name="file"
                                        required
-                                       accept=".pdf,.doc,.docx,.zip,.rar"
+                                       accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png"
                                        onchange="previewFile(this)">
                                 <div id="filePreview" class="mt-2 text-sm text-gray-600"></div>
                                 <small class="form-text text-muted">
-                                    Format yang diterima: PDF, DOC, DOCX, ZIP, RAR. Maksimal: 10MB
+                                    Format yang diterima: PDF, DOC, DOCX, TXT, ZIP, RAR, JPG, JPEG, PNG. Maksimal: 5MB
                                 </small>
-                                @error('submission_file')
+                                @error('file')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -164,9 +164,9 @@
                                 <label for="comments" class="form-label">Komentar (Opsional)</label>
                                 <textarea class="form-control"
                                           id="comments"
-                                          name="comments"
+                                          name="submission_text"
                                           rows="3"
-                                          placeholder="Tambahkan komentar atau catatan mengenai tugas ini...">{{ old('comments') }}</textarea>
+                                          placeholder="Tambahkan komentar atau catatan mengenai tugas ini...">{{ old('submission_text') }}</textarea>
                             </div>
                             <button type="submit" class="btn btn-success btn-block" id="submitBtn">
                                 <i class="fas fa-paper-plane"></i> Kumpulkan Tugas
@@ -214,16 +214,16 @@ function previewFile(input) {
     const fileExtension = file.name.split('.').pop().toLowerCase();
 
     // Check file size
-    if (file.size > 10 * 1024 * 1024) {
-        preview.innerHTML = `<span class="text-danger">File terlalu besar! Maksimal 10MB.</span>`;
+    if (file.size > 5 * 1024 * 1024) {
+        preview.innerHTML = `<span class="text-danger">File terlalu besar! Maksimal 5MB.</span>`;
         input.value = '';
         return;
     }
 
     // Check file type
-    const allowedTypes = ['pdf', 'doc', 'docx', 'zip', 'rar'];
+    const allowedTypes = ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar', 'jpg', 'jpeg', 'png'];
     if (!allowedTypes.includes(fileExtension)) {
-        preview.innerHTML = `<span class="text-danger">Format file tidak diizinkan! Hanya PDF, DOC, DOCX, ZIP, RAR.</span>`;
+        preview.innerHTML = `<span class="text-danger">Format file tidak diizinkan!</span>`;
         input.value = '';
         return;
     }
@@ -253,4 +253,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-@endsection

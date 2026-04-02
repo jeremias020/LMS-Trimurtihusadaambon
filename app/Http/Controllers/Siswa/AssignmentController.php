@@ -29,8 +29,8 @@ class AssignmentController extends Controller
             $query->where('siswa_id', Auth::id());
         }])
         ->where('is_published', true)
-        ->where('deadline', '>', now())
-        ->orderBy('deadline', 'asc')
+        ->where('due_date', '>', now())
+        ->orderBy('due_date', 'asc')
         ->paginate(10);
 
         return view('siswa.assignments.index', compact('assignments'));
@@ -169,10 +169,51 @@ class AssignmentController extends Controller
             $query->where('siswa_id', Auth::id());
         }])
         ->where('is_published', true)
-        ->where('deadline', '<=', now())
-        ->orderBy('deadline', 'desc')
+        ->where('due_date', '<=', now())
+        ->orderBy('due_date', 'desc')
         ->paginate(10);
 
         return view('siswa.assignments.archived', compact('assignments'));
+    }
+
+    /**
+     * Export current student's visible assignments to CSV.
+     */
+    public function export()
+    {
+        $studentId = Auth::id();
+
+        $assignments = Assignment::with(['submissions' => function($q) use ($studentId) {
+                $q->where('siswa_id', $studentId);
+            }])
+            ->where('is_published', true)
+            ->orderBy('deadline', 'asc')
+            ->limit(1000)
+            ->get();
+
+        $filename = 'assignments-student-' . $studentId . '-' . now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($assignments) {
+            $handle = fopen('php://output', 'w');
+            // Header row
+            fputcsv($handle, ['Judul', 'Deskripsi', 'Deadline', 'Status Pengumpulan']);
+            foreach ($assignments as $a) {
+                $submitted = $a->submissions && $a->submissions->count() > 0 ? 'Terkumpul' : 'Belum';
+                fputcsv($handle, [
+                    $a->title ?? $a->judul ?? '-',
+                    str_replace(["\r","\n"], ' ', (string)($a->description ?? '')),
+                    optional($a->deadline)->format('Y-m-d H:i') ?? '-',
+                    $submitted,
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, $headers);
     }
 }

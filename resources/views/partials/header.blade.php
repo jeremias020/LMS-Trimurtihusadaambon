@@ -1,103 +1,125 @@
-<nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm" role="navigation">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url('/') }}">
-            <img src="{{ asset('uploads/logo/logo.png') }}" alt="Logo LMS Trimurti Husada" title="LMS Trimurti Husada" height="40" class="d-inline-block align-text-top me-2">
-            LMS Trimurti Husada
-        </a>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-            <span class="navbar-toggler-icon"></span>
+<header class="top-header border-bottom bg-white shadow-sm">
+    <div class="d-flex align-items-center">
+        <!-- Sidebar Toggle -->
+        <button class="btn btn-ghost d-lg-none me-3 p-2" id="mobileSidebarToggle" type="button" title="Toggle Navigation">
+            <i class="fas fa-bars text-primary fs-5"></i>
+        </button>
+        <button class="btn btn-ghost d-none d-lg-block me-3 p-2" id="sidebarToggle" type="button" title="Collapse Sidebar">
+            <i class="fas fa-bars text-primary fs-5"></i>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <!-- Left Side Of Navbar -->
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}"
-                       href="{{ url('/') }}"
-                       {{ request()->is('/') ? 'aria-current="page"' : '' }}>
-                        Beranda
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('about') ? 'active' : '' }}"
-                       href="{{ route('about') }}"
-                       {{ request()->routeIs('about') ? 'aria-current="page"' : '' }}>
-                        Tentang
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}"
-                       href="{{ route('contact') }}"
-                       {{ request()->routeIs('contact') ? 'aria-current="page"' : '' }}>
-                        Kontak
-                    </a>
-                </li>
-            </ul>
-
-            <!-- Right Side Of Navbar -->
-            <ul class="navbar-nav ms-auto">
-                <!-- Authentication Links -->
-                @guest
-                    @if (Route::has('login'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}"
-                               href="{{ route('login') }}"
-                               {{ request()->routeIs('login') ? 'aria-current="page"' : '' }}>
-                                {{ __('Login') }}
-                            </a>
-                        </li>
+        <!-- Brand Logo -->
+        <div class="d-lg-none me-auto">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary rounded p-1 me-2">
+                    @if(Auth::check() && Auth::user()->role === 'student')
+                        <i class="fas fa-user-graduate text-white fs-6"></i>
+                    @else
+                        <i class="fas fa-graduation-cap text-white fs-6"></i>
                     @endif
-
-                    @if (Route::has('register'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('register') ? 'active' : '' }}"
-                               href="{{ route('register') }}"
-                               {{ request()->routeIs('register') ? 'aria-current="page"' : '' }}>
-                                {{ __('Register') }}
-                            </a>
-                        </li>
+                </div>
+                <span class="fw-bold text-dark">
+                    @if(Auth::check() && Auth::user()->role === 'student')
+                        LMS Siswa
+                    @else
+                        LMS Trimurti
                     @endif
-                @else
-                    <li class="nav-item dropdown">
-                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                            {{ Auth::user()->name }}
-                        </a>
+                </span>
+            </div>
+        </div>
 
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            @php
-                                $dashboardRoute = match(Auth::user()->role ?? '') {
-                                    'admin' => 'admin.dashboard',
-                                    'teacher' => 'guru.dashboard',
-                                    'student' => 'siswa.dashboard',
-                                    default => 'home',
-                                };
-                            @endphp
+        <!-- Search Bar -->
+        <div class="position-relative d-none d-lg-block me-auto">
+            <form action="#" method="GET" class="d-flex" id="globalSearchForm">
+                <div class="input-group shadow-sm" style="min-width: 350px;">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-pill">
+                        <i class="fas fa-search text-primary"></i>
+                    </span>
+                    <input type="search"
+                           name="search"
+                           value="{{ request('search') }}"
+                           class="form-control border-start-0 border-end-0 bg-white"
+                           placeholder="@if(Auth::check() && Auth::user()->role === 'student')Cari materi, tugas, nilai...@else Cari tugas, materi, pengguna...@endif"
+                           id="globalSearch"
+                           autocomplete="off">
+                </div>
+            </form>
+        </div>
 
-                            <a class="dropdown-item" href="{{ route($dashboardRoute) }}">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="fas fa-user me-2"></i> Profil
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a class="dropdown-item" href="{{ route('logout') }}"
-                               onclick="event.preventDefault();
-                                        document.getElementById('logout-form').submit();
-                                        this.innerHTML = '<i class=\'fas fa-spinner fa-spin me-2\'></i> Logging out...';
-                                        this.classList.add('disabled');">
-                                <i class="fas fa-sign-out-alt me-2"></i> {{ __('Logout') }}
-                            </a>
+        {{-- Quick Access/Actions (optional, bisa pakai @if role) --}}
+        {{-- Tambahkan dropdown/aksi cepat sesuai kebutuhan --}}
 
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        </div>
-                    </li>
-                @endguest
+        <!-- Notification Dropdown -->
+        @auth
+        <div class="dropdown me-2">
+            <button class="btn btn-ghost position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Notifikasi">
+                <i class="fas fa-bell"></i>
+                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                    0
+                </span>
+            </button>
+            <ul id="notification-dropdown" class="dropdown-menu dropdown-menu-end" style="min-width: 320px;">
+                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                    <span>Notifikasi</span>
+                    <button id="mark-all-read" class="btn btn-sm btn-outline-primary">Tandai semua dibaca</button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <!-- Notifications will be loaded here -->
             </ul>
         </div>
+        @endauth
+
+        <!-- User Dropdown -->
+        <div class="d-flex align-items-center gap-2 flex-nowrap order-2">
+            @guest
+                @if (Route::has('login'))
+                    <a class="btn btn-outline-primary me-2" href="{{ route('login') }}">Login</a>
+                @endif
+            @else
+                <div class="dropdown">
+                    <a id="navbarDropdown" class="btn btn-outline-secondary dropdown-toggle" href="#" role="button"
+                       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                        <i class="fas fa-user me-2"></i>{{ Auth::user()->name }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        @php
+                            $role = Auth::user()->role ?? '';
+                            if ($role === 'admin') {
+                                $dashboardRoute = 'admin.dashboard';
+                                $profileRoute = 'admin.profile.edit';
+                            } elseif ($role === 'guru') {
+                                $dashboardRoute = 'guru.dashboard';
+                                $profileRoute = 'guru.profile.edit';
+                            } elseif ($role === 'student') {
+                                $dashboardRoute = 'siswa.dashboard';
+                                $profileRoute = 'siswa.profile.edit';
+                            } else {
+                                $dashboardRoute = 'dashboard';
+                                $profileRoute = null;
+                            }
+                        @endphp
+                        <a class="dropdown-item" href="{{ route($dashboardRoute) }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        @if (!empty($profileRoute) && Route::has($profileRoute))
+                            <a class="dropdown-item" href="{{ route($profileRoute) }}">
+                                <i class="fas fa-user me-2"></i> Profil
+                            </a>
+                        @endif
+                        <hr class="dropdown-divider">
+                        <a class="dropdown-item" href="{{ route('logout') }}"
+                           onclick="event.preventDefault();
+                                    document.getElementById('logout-form').submit();
+                                    this.innerHTML = '<i class=\'fas fa-spinner fa-spin me-2\'></i> Logging out...';
+                                    this.classList.add('disabled');">
+                            <i class="fas fa-sign-out-alt me-2"></i> {{ __('Logout') }}
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
+                    </div>
+                </div>
+            @endguest
+        </div>
     </div>
-</nav>
+</header>

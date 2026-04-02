@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder
        $this->call([
     UserSeeder::class,
     KelasSeeder::class,
+    KelasSiswaSeeder::class, // Tambahkan seeder untuk data kelas dan siswa
     SubjectSeeder::class,
     SettingSeeder::class,
     SiswaSeeder::class,

@@ -199,12 +199,25 @@
                             </div>
 
                             <div class="form-group">
+                                <label for="class_id" class="form-label">Kelas *</label>
+                                <select name="class_id" id="class_id" class="form-input" required autocomplete="off">
+                                    <option value="">Pilih Kelas</option>
+                                    @foreach($classes as $class)
+                                    <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('class_id')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
                                 <label for="subject_id" class="form-label">Mata Pelajaran *</label>
                                 <select name="subject_id" id="subject_id" class="form-input" required autocomplete="off">
                                     <option value="">Pilih Mata Pelajaran</option>
-                                    @foreach($subjects as $subject)
-                                    <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
-                                        {{ $subject->nama ?? $subject->name }}
+                                    @foreach($classSubjects as $classSubject)
+                                    <option value="{{ $classSubject->id }}" {{ old('subject_id') == $classSubject->id ? 'selected' : '' }}>
+                                        {{ $classSubject->subject_name }}
                                     </option>
                                     @endforeach
                                 </select>
@@ -213,19 +226,7 @@
                                 @enderror
                             </div>
 
-                            <div class="form-group">
-                                <label for="class" class="form-label">Kelas *</label>
-                                <select name="class" id="class" class="form-input" required autocomplete="off">
-                                    <option value="">Pilih Kelas</option>
-                                    <option value="X" {{ old('class') == 'X' ? 'selected' : '' }}>Kelas X</option>
-                                    <option value="XI" {{ old('class') == 'XI' ? 'selected' : '' }}>Kelas XI</option>
-                                    <option value="XII" {{ old('class') == 'XII' ? 'selected' : '' }}>Kelas XII</option>
-                                </select>
-                                @error('class')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
+                            
                             <div class="form-group">
                                 <label for="deadline" class="form-label">Batas Waktu *</label>
                                 <input type="datetime-local" name="deadline" id="deadline" class="form-input"
