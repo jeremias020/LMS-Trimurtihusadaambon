@@ -1,29 +1,24 @@
 @extends('layouts.admin')
 
 @section('title', 'Laporan Absensi')
+@section('page-title', 'Laporan Absensi')
+@section('page-subtitle', 'Kehadiran siswa dan guru — SMK Kesehatan Trimurti Husada.')
+
+@section('page-actions')
+    <div class="dropdown">
+        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-download fa-sm me-1"></i> Ekspor
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item" href="#" onclick="exportReport('pdf')">PDF</a></li>
+            <li><a class="dropdown-item" href="#" onclick="exportReport('excel')">Excel</a></li>
+            <li><a class="dropdown-item" href="#" onclick="exportReport('csv')">CSV</a></li>
+        </ul>
+    </div>
+@endsection
 
 @section('content')
-<div class="container-fluid px-4">
-    <!-- Page Heading -->
-    <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-4">
-        <div class="mb-3 mb-md-0">
-            <h1 class="h3 mb-1 text-gray-800">Laporan Absensi</h1>
-            <p class="mb-0 text-muted">Laporan kehadiran siswa dan guru - SMK Kesehatan Trimurti Husada Ambon</p>
-        </div>
-        <div class="d-none d-md-block">
-            <div class="dropdown">
-                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-download fa-sm text-white-50"></i> Ekspor
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="#" onclick="exportReport('pdf')">PDF</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="exportReport('excel')">Excel</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="exportReport('csv')">CSV</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
+<div class="container-fluid px-0">
     <!-- Filter Form -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">

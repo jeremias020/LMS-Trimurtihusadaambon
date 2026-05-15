@@ -160,18 +160,26 @@
         <!-- Content Wrapper -->
         <div class="content-wrapper">
             <div class="page-content">
-                <!-- Page Header -->
+                @if(View::hasSection('page-title') || View::hasSection('page-actions'))
                 <div class="page-header">
+                    @hasSection('page-title')
                     <div class="page-title-section">
-                        <h1 class="page-title">@yield('page-title', 'Dashboard Admin')</h1>
+                        <h1 class="page-title">@yield('page-title')</h1>
+                        @hasSection('page-subtitle')
+                        <p class="page-description mb-0">@yield('page-subtitle')</p>
+                        @endif
                         @if(isset($pageDescription))
-                            <p class="page-description">{{ $pageDescription }}</p>
+                            <p class="page-description mb-0">{{ $pageDescription }}</p>
                         @endif
                     </div>
+                    @endif
+                    @hasSection('page-actions')
                     <div class="page-actions">
                         @yield('page-actions')
                     </div>
+                    @endif
                 </div>
+                @endif
 
                 <!-- Alerts -->
                 @if(session('success'))

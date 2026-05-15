@@ -2,12 +2,16 @@
 
 @section('title', 'Manajemen Materi Pembelajaran')
 
-@section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Manajemen Materi Pembelajaran</h1>
-    <p class="text-gray-600">Kelola semua materi pembelajaran dari guru SMK Kesehatan Trimurti Husada</p>
-</div>
+@section('page-title', 'Materi Pembelajaran')
+@section('page-subtitle', 'Kelola materi dari guru SMK Kesehatan Trimurti Husada.')
 
+@section('page-actions')
+    <a href="{{ route('admin.materials.create') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i> Tambah materi
+    </a>
+@endsection
+
+@section('content')
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
     <div class="bg-white rounded-lg shadow p-6">
@@ -72,14 +76,8 @@
 </div>
 
 <div class="bg-white rounded-lg shadow overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 class="text-xl font-semibold text-gray-800">Daftar Materi Pembelajaran</h2>
-        <a href="{{ route('admin.materials.create') }}" class="btn-primary" title="Tambah materi baru">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" role="img">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Tambah Materi Baru
-        </a>
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-2">
+        <h2 class="text-xl font-semibold text-gray-800 mb-0">Daftar materi</h2>
     </div>
 
     <div class="px-6 py-4">

@@ -2,12 +2,10 @@
 
 @section('title', 'Laporan Praktikum')
 
-@section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Laporan Praktikum</h1>
-    <p class="text-gray-600">Laporan kegiatan praktikum dan penilaian - SMK Kesehatan Trimurti Husada Ambon</p>
-</div>
+@section('page-title', 'Laporan Praktikum')
+@section('page-subtitle', 'Ringkasan kegiatan praktikum dan penilaian.')
 
+@section('content')
 <!-- Filter Section -->
 <div class="bg-white rounded-lg shadow overflow-hidden mb-8 transition-shadow duration-200 hover:shadow-lg">
     <div class="px-6 py-4 border-b border-gray-200">
@@ -77,7 +75,7 @@
         <div class="flex items-center">
             <div class="p-3 bg-blue-100 rounded-full">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m极地 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                 </svg>
             </div>
             <div class="ml-4">
@@ -90,13 +88,13 @@
     <div class="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105">
         <div class="flex items-center">
             <div class="p-3 bg-green-100 rounded-full">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="current极地" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 极地 0 01118 0z"></path>
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div class="ml-4">
                 <h2 class="text-2xl font-bold text-gray-800">{{ $stats['completed_practicals'] ?? 0 }}</h2>
-                <p极地="text-gray-600 text-sm">Praktikum Selesai</p>
+                <p class="text-gray-600 text-sm">Praktikum Selesai</p>
             </div>
         </div>
     </div>
@@ -104,8 +102,8 @@
     <div class="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105">
         <div class="flex items-center">
             <div class="p-3 bg-yellow-100 rounded-full">
-                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 极地 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 01118 0z"></path>
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div class="ml-4">
@@ -117,10 +115,10 @@
 
     <div class="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105">
         <div class="flex items-center">
-            <极地 class="p-3 bg-purple-100 rounded-full">
-                <svg class="w-极地 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <div class="p-3 bg-purple-100 rounded-full">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15极地3.512A9.025 9.025 0 0120.488 9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
                 </svg>
             </div>
             <div class="ml-4">
@@ -142,13 +140,13 @@
 
     <div class="px-4 sm:px-6 py-4">
         @if(($practicals->count() ?? 0) > 0)
-        <div class="overflow极地-auto">
+        <div class="overflow-x-auto">
             <table class="w-full table-auto">
                 <thead>
                     <tr class="bg-gray-50">
                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Praktikum</th>
                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
-                        <th class="px-4 sm:px-6 py-3极地 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</极地>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peserta</th>
                         <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -166,7 +164,7 @@
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $practical->subject->name ?? 'Tidak ada mata pelajaran' }}
                         </td>
-                        <td class="px-4 sm:极地-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $practical->teacher->name ?? 'Tidak ada guru' }}
                         </td>
                         <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -227,7 +225,7 @@
         @else
         <div class="text-center py-8">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin极地="round" stroke-width="2" d="M19 极地H5m14 0a2 2 0 012 2v6a2 2 极地 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2极地2M7 7h10"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data</h3>
             <p class="mt-1 text-sm text-gray-500">Tidak ada data praktikum yang sesuai dengan filter yang dipilih.</p>
@@ -244,7 +242,7 @@
         <canvas id="scoreDistributionChart" height="250"></canvas>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:极地cale-[1.02]">
+    <div class="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-[1.02]">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Status Praktikum</h3>
         <canvas id="statusBySubjectChart" height="250"></canvas>
     </div>
@@ -303,7 +301,7 @@ function exportReport() {
 <?php if (($practicals->count() ?? 0) > 0): ?>
 function initializeCharts() {
     // Score Distribution Chart
-    const scoreCtx = document.getElementById('score极地istributionChart');
+    const scoreCtx = document.getElementById('scoreDistributionChart');
     if (scoreCtx) {
         try {
             new Chart(scoreCtx, {
