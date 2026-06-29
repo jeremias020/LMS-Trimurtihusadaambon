@@ -44,8 +44,4 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer run-script post-autoload-dump 2>/dev/nul
 
 EXPOSE $PORT
 
-CMD php artisan config:clear 2>/dev/null; \
-    php artisan migrate --force 2>&1 | tee /tmp/migrate.log || echo "Migration had errors, continuing..."; \
-    php artisan storage:link 2>/dev/null || true; \
-    echo "Starting PHP server on port $PORT"; \
-    php -S 0.0.0.0:$PORT -t public
+CMD sh -c "php artisan config:clear 2>/dev/null; php artisan migrate --force 2>&1 | tee /tmp/migrate.log || echo 'Migration had errors, continuing...'; php artisan storage:link 2>/dev/null || true; echo 'Starting PHP server on port '${PORT:-8080}; exec php -S 0.0.0.0:${PORT:-8080} -t public"
