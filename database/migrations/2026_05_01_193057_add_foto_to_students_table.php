@@ -6,23 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->string('foto')->nullable()->after('phone');
-        });
+        // Tabel 'students' mungkin tidak ada — pakai 'siswa'
+        $tabel = Schema::hasTable('students') ? 'students' : (Schema::hasTable('siswa') ? 'siswa' : null);
+        if ($tabel && !Schema::hasColumn($tabel, 'foto')) {
+            Schema::table($tabel, function (Blueprint $table) {
+                $table->string('foto')->nullable();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->dropColumn('foto');
-        });
+        foreach (['students', 'siswa'] as $tabel) {
+            if (Schema::hasTable($tabel) && Schema::hasColumn($tabel, 'foto')) {
+                Schema::table($tabel, function (Blueprint $table) {
+                    $table->dropColumn('foto');
+                });
+            }
+        }
     }
 };

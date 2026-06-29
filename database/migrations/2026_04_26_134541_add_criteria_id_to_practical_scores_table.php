@@ -6,24 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('practical_scores', function (Blueprint $table) {
-            $table->foreignId('criteria_id')->nullable()->after('siswa_id')->constrained()->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('practical_scores', 'criteria_id')) {
+            Schema::table('practical_scores', function (Blueprint $table) {
+                $table->foreignId('criteria_id')->nullable()->after('siswa_id')->constrained()->onDelete('cascade');
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('practical_scores', function (Blueprint $table) {
-            $table->dropForeign(['criteria_id']);
-            $table->dropColumn('criteria_id');
-        });
+        if (Schema::hasColumn('practical_scores', 'criteria_id')) {
+            Schema::table('practical_scores', function (Blueprint $table) {
+                $table->dropForeign(['criteria_id']);
+                $table->dropColumn('criteria_id');
+            });
+        }
     }
 };

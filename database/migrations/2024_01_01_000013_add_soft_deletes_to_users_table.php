@@ -6,23 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        // Pakai users_central (bukan users)
+        foreach (['users_central', 'users'] as $tabel) {
+            if (Schema::hasTable($tabel) && !Schema::hasColumn($tabel, 'deleted_at')) {
+                Schema::table($tabel, function (Blueprint $table) {
+                    $table->softDeletes();
+                });
+            }
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-        });
+        foreach (['users_central', 'users'] as $tabel) {
+            if (Schema::hasTable($tabel) && Schema::hasColumn($tabel, 'deleted_at')) {
+                Schema::table($tabel, function (Blueprint $table) {
+                    $table->dropSoftDeletes();
+                });
+            }
+        }
     }
 };
