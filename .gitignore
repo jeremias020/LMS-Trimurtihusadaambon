@@ -212,3 +212,5 @@ Thumbs.db
 /.tags
 /.tags_sorted
 /.php-cs-fixer.cache
+# Railway env
+/.env.railway
