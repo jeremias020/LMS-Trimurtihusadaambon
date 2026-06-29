@@ -37,19 +37,11 @@ return new class extends Migration
                 $table->integer('order')->default(0);
             }
             
-            // Indexes
-            if (!Schema::hasIndex('subjects', 'subjects_type_index')) {
-                $table->index('type');
-            }
-            if (!Schema::hasIndex('subjects', 'subjects_is_active_index')) {
-                $table->index('is_active');
-            }
-            if (!Schema::hasIndex('subjects', 'subjects_guru_id_index')) {
-                $table->index('guru_id');
-            }
-            if (!Schema::hasIndex('subjects', 'subjects_kelas_id_index')) {
-                $table->index('kelas_id');
-            }
+            // Indexes - wrapped safely
+            try { $table->index('type'); } catch (\Throwable $e) {}
+            try { $table->index('is_active'); } catch (\Throwable $e) {}
+            try { $table->index('guru_id'); } catch (\Throwable $e) {}
+            try { $table->index('kelas_id'); } catch (\Throwable $e) {}
         });
     }
 
@@ -59,21 +51,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('subjects', function (Blueprint $table) {
-            // Drop indexes first
-            if (Schema::hasIndex('subjects', 'subjects_type_index')) {
-                $table->dropIndex(['type']);
-            }
-            if (Schema::hasIndex('subjects', 'subjects_is_active_index')) {
-                $table->dropIndex(['is_active']);
-            }
-            if (Schema::hasIndex('subjects', 'subjects_guru_id_index')) {
-                $table->dropIndex(['guru_id']);
-            }
-            if (Schema::hasIndex('subjects', 'subjects_kelas_id_index')) {
-                $table->dropIndex(['kelas_id']);
-            }
-            
-            // Drop columns
+            try { $table->dropIndex(['type']); } catch (\Throwable $e) {}
+            try { $table->dropIndex(['is_active']); } catch (\Throwable $e) {}
+            try { $table->dropIndex(['guru_id']); } catch (\Throwable $e) {}
+            try { $table->dropIndex(['kelas_id']); } catch (\Throwable $e) {}
+
             $columnsToDrop = ['description', 'guru_id', 'kelas_id', 'sks', 'type', 'color', 'is_active', 'order'];
             foreach ($columnsToDrop as $column) {
                 if (Schema::hasColumn('subjects', $column)) {

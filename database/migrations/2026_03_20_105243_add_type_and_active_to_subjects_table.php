@@ -37,22 +37,17 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('subjects', function (Blueprint $table) {
-            // Drop indexes first
-            if (\Schema::hasIndex('subjects', 'subjects_type_index')) {
-                $table->dropIndex(['type']);
+            try { $table->dropIndex(['type']); } catch (\Throwable $e) {}
+            try { $table->dropIndex(['is_active']); } catch (\Throwable $e) {}
+
+            foreach (['type', 'is_active', 'sks', 'color', 'order'] as $col) {
+                if (Schema::hasColumn('subjects', $col)) {
+                    $table->dropColumn($col);
+                }
             }
-            if (\Schema::hasIndex('subjects', 'subjects_is_active_index')) {
-                $table->dropIndex(['is_active']);
-            }
-            
-            // Drop columns
-            $table->dropColumn(['type', 'is_active', 'sks', 'color', 'order']);
         });
     }
 };

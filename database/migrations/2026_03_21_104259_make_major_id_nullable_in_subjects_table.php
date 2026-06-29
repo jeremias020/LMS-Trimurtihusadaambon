@@ -6,25 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('subjects', function (Blueprint $table) {
-            // Make major_id nullable
-            $table->unsignedBigInteger('major_id')->nullable()->change();
-        });
+        if (Schema::hasTable('subjects') && Schema::hasColumn('subjects', 'major_id')) {
+            Schema::table('subjects', function (Blueprint $table) {
+                $table->unsignedBigInteger('major_id')->nullable()->change();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('subjects', function (Blueprint $table) {
-            // Make major_id not nullable again
-            $table->unsignedBigInteger('major_id')->nullable(false)->change();
-        });
+        // Tidak perlu balik ke NOT NULL
     }
 };
