@@ -11,19 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('majors')) {
-            return;
-        }
-
-        Schema::create('majors', function (Blueprint $table) {
+        if (!Schema::hasTable('criteria')) { Schema::create('criteria', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Contoh: Keperawatan, Farmasi, Analis Kesehatan
-            $table->string('code')->unique(); // Contoh: KEP, FAR
+            $table->string('name');
             $table->text('description')->nullable();
+            $table->integer('max_score')->default(100);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
             
-            // Indexes
-            $table->index('code');
+            $table->index('is_active');
         });
     }
 
@@ -32,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('majors');
+        Schema::dropIfExists('criteria');
     }
 };
