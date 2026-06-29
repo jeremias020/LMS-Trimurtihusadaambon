@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SystemNotification;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -13,52 +13,62 @@ class NotificationController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * Halaman daftar semua notifikasi.
+     */
     public function index(Request $request)
     {
-        $notifications = SystemNotification::where('user_id', auth()->id())
-            ->with(['user'])
+        $userId = auth()->id();
+
+        $notifications = Notification::forUser($userId)
             ->latest()
-            ->paginate(10);
+            ->paginate(15);
 
         return view('notifications.index', compact('notifications'));
     }
 
+    /**
+     * Jumlah notifikasi belum dibaca (AJAX).
+     */
     public function unreadCount(): JsonResponse
     {
-        $count = SystemNotification::where('user_id', auth()->id())
-            ->where('is_read', false)
-            ->count();
+        $count = Notification::forUser(auth()->id())->unread()->count();
 
         return response()->json(['count' => $count]);
     }
 
+    /**
+     * 5 notifikasi terbaru belum dibaca (AJAX — untuk dropdown header).
+     */
     public function recent(): JsonResponse
     {
-        $notifications = SystemNotification::where('user_id', auth()->id())
+        $notifications = Notification::forUser(auth()->id())
             ->unread()
             ->latest()
             ->take(5)
-            ->get(['id', 'title', 'message', 'type', 'action_url', 'created_at']);
+            ->get();
 
         return response()->json([
-            'notifications' => $notifications->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'title' => $notification->title,
-                    'message' => $notification->message,
-                    'type' => $notification->type,
-                    'icon' => $notification->icon,
-                    'color' => $notification->color,
-                    'action_url' => $notification->action_url,
-                    'time_ago' => $notification->time_ago,
-                ];
-            })
+            'notifications' => $notifications->map(fn($n) => [
+                'id'         => $n->id,
+                'title'      => $n->display_title,
+                'message'    => $n->display_message,
+                'type'       => $n->display_type,
+                'icon'       => $n->icon_name,      // nama icon saja, tanpa prefix
+                'color'      => $n->color,
+                'action_url' => $n->display_action_url,
+                'time_ago'   => $n->time_ago,
+            ]),
+            'unread_count'  => Notification::forUser(auth()->id())->unread()->count(),
         ]);
     }
 
-    public function markAsRead(SystemNotification $notification): JsonResponse
+    /**
+     * Tandai satu notifikasi sudah dibaca.
+     */
+    public function markAsRead(Notification $notification): JsonResponse
     {
-        if ($notification->user_id !== auth()->id()) {
+        if ((int)$notification->penerima_id !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -67,21 +77,28 @@ class NotificationController extends Controller
         return response()->json(['success' => true]);
     }
 
+    /**
+     * Tandai semua notifikasi sudah dibaca.
+     */
     public function markAllAsRead(): JsonResponse
     {
-        SystemNotification::where('user_id', auth()->id())
+        Notification::forUser(auth()->id())
             ->unread()
             ->update([
                 'is_read' => true,
                 'read_at' => now(),
+                'status'  => 'terbaca',
             ]);
 
         return response()->json(['success' => true]);
     }
 
-    public function delete(SystemNotification $notification): JsonResponse
+    /**
+     * Hapus satu notifikasi.
+     */
+    public function delete(Notification $notification): JsonResponse
     {
-        if ($notification->user_id !== auth()->id()) {
+        if ((int)$notification->penerima_id !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

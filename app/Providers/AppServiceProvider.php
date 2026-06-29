@@ -8,6 +8,8 @@ use App\Http\ViewComposers\NotificationComposer;
 use App\Http\ViewComposers\GuruStatsComposer;
 use App\Http\ViewComposers\GuruDashboardComposer;
 use App\Http\ViewComposers\AdminStatsComposer;
+use App\Models\Material;
+use App\Observers\MaterialObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,12 +26,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Material Observer
+        Material::observe(MaterialObserver::class);
+        
         // Register view composers
         View::composer('partials.notifications', NotificationComposer::class);
         View::composer('layouts.admin', NotificationComposer::class);
         View::composer('layouts.guru', NotificationComposer::class);
         View::composer('partials.header-guru', NotificationComposer::class);
         View::composer('layouts.siswa', NotificationComposer::class);
+        View::composer('partials.header-siswa', NotificationComposer::class);
         
         // Register guru stats composer for sidebar
         View::composer('partials.sidebar-guru', GuruStatsComposer::class);

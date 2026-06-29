@@ -5,44 +5,39 @@ namespace App\Http\ViewComposers;
 use Illuminate\View\View;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class NotificationComposer
 {
     /**
-     * Bind data to the view.
+     * Bind data notifikasi ke view.
      */
     public function compose(View $view): void
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            
-            // Get notifications for the current user
-            $notifications = Notification::with(['sender'])
-                ->where(function($query) use ($user) {
-                    $query->where('penerima_id', $user->id)
-                          ->orWhere('tipe_penerima', 'semua');
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
-
-            // Count unread notifications
-            $unreadCount = Notification::where(function($query) use ($user) {
-                $query->where('penerima_id', $user->id)
-                      ->orWhere('tipe_penerima', 'semua');
-            })
-            ->whereNull('read_at')
-            ->count();
-
-            $view->with([
-                'notifications' => $notifications,
-                'unreadCount' => $unreadCount
-            ]);
-        } else {
-            $view->with([
-                'notifications' => collect(),
-                'unreadCount' => 0
-            ]);
+        if (!Auth::check()) {
+            $view->with(['notifications' => collect(), 'unreadCount' => 0]);
+            return;
         }
+
+        $userId   = Auth::id();
+        $cacheKey = 'notif_' . $userId;
+
+        try {
+            $notifications = Cache::remember($cacheKey . '_list', 60, function () use ($userId) {
+                return Notification::forUser($userId)
+                    ->latest()
+                    ->limit(10)
+                    ->get();
+            });
+
+            $unreadCount = Cache::remember($cacheKey . '_unread', 60, function () use ($userId) {
+                return Notification::forUser($userId)->unread()->count();
+            });
+        } catch (\Throwable $e) {
+            $notifications = collect();
+            $unreadCount   = 0;
+        }
+
+        $view->with(compact('notifications', 'unreadCount'));
     }
 }
