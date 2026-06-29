@@ -26,8 +26,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register Material Observer
-        Material::observe(MaterialObserver::class);
+        // Register Material Observer — wrapped agar tidak crash jika class belum ter-autoload
+        try {
+            Material::observe(MaterialObserver::class);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('MaterialObserver tidak dapat didaftarkan: ' . $e->getMessage());
+        }
         
         // Register view composers
         View::composer('partials.notifications', NotificationComposer::class);

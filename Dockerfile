@@ -38,7 +38,8 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --optimize-autoloader \
     --no-dev \
     --no-interaction \
-    --no-scripts
+    --no-scripts \
+    && COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize
 
 # Copy rest of application
 COPY . .
