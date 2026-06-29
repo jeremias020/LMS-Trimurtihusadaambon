@@ -43,8 +43,14 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
 # Copy rest of application
 COPY . .
 
-# Set permissions
-RUN chmod -R 775 storage bootstrap/cache \
+# Buat folder yang dibutuhkan Laravel jika belum ada
+RUN mkdir -p storage/app/public \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
 # Run post-install scripts
