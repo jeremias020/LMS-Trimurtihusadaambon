@@ -6,93 +6,91 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            // Add missing columns
+            if (!Schema::hasColumn('notifications', 'pengirim_id')) {
+                $table->unsignedBigInteger('pengirim_id')->nullable();
+            }
             if (!Schema::hasColumn('notifications', 'sender_id')) {
-                $table->unsignedBigInteger('sender_id')->nullable()->after('pengirim_id');
-                $table->foreign('sender_id')->references('id')->on('users')->onDelete('set null');
+                $table->unsignedBigInteger('sender_id')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'receiver_id')) {
-                $table->unsignedBigInteger('receiver_id')->nullable()->after('penerima_id');
-                $table->foreign('receiver_id')->references('id')->on('users')->onDelete('set null');
+                $table->unsignedBigInteger('receiver_id')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'receiver_type')) {
-                $table->string('receiver_type')->nullable()->after('tipe_penerima');
+                $table->string('receiver_type')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'tipe')) {
-                $table->string('tipe')->default('info')->after('receiver_type');
+                $table->string('tipe')->default('info');
             }
-            
             if (!Schema::hasColumn('notifications', 'type')) {
-                $table->string('type')->nullable()->after('tipe');
+                $table->string('type')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'judul')) {
-                $table->string('judul')->nullable()->after('type');
+                $table->string('judul')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'pesan')) {
-                $table->text('pesan')->nullable()->after('judul');
+                $table->text('pesan')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'url_aksi')) {
-                $table->string('url_aksi')->nullable()->after('pesan');
+                $table->string('url_aksi')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'prioritas')) {
-                $table->string('prioritas')->default('sedang')->after('url_aksi');
+                $table->string('prioritas')->default('sedang');
             }
-            
             if (!Schema::hasColumn('notifications', 'priority')) {
-                $table->string('priority')->nullable()->after('prioritas');
+                $table->string('priority')->nullable();
             }
-            
             if (!Schema::hasColumn('notifications', 'status')) {
-                $table->string('status')->default('belum_dibaca')->after('priority');
+                $table->string('status')->default('belum_dibaca');
             }
-            
             if (!Schema::hasColumn('notifications', 'scheduled_at')) {
-                $table->timestamp('scheduled_at')->nullable()->after('read_at');
+                $table->timestamp('scheduled_at')->nullable();
             }
-            
-            // Add indexes
-            $table->index(['receiver_id', 'receiver_type']);
-            $table->index('receiver_type');
-            $table->index('tipe');
-            $table->index('type');
-            $table->index('status');
-            $table->index('prioritas');
-            $table->index('priority');
-            $table->index('scheduled_at');
+        });
+
+        // Tambah index hanya jika belum ada
+        $this->addIndexIfNotExists('notifications', ['receiver_id', 'receiver_type'], 'notifications_receiver_id_receiver_type_index');
+        $this->addIndexIfNotExists('notifications', ['receiver_type'],  'notifications_receiver_type_index');
+        $this->addIndexIfNotExists('notifications', ['tipe'],           'notifications_tipe_index');
+        $this->addIndexIfNotExists('notifications', ['type'],           'notifications_type_index');
+        $this->addIndexIfNotExists('notifications', ['status'],         'notifications_status_index');
+        $this->addIndexIfNotExists('notifications', ['prioritas'],      'notifications_prioritas_index');
+        $this->addIndexIfNotExists('notifications', ['priority'],       'notifications_priority_index');
+        $this->addIndexIfNotExists('notifications', ['scheduled_at'],   'notifications_scheduled_at_index');
+    }
+
+    public function down(): void
+    {
+        Schema::table('notifications', function (Blueprint $table) {
+            $columns = [
+                'pengirim_id', 'sender_id', 'receiver_id', 'receiver_type',
+                'tipe', 'type', 'judul', 'pesan', 'url_aksi',
+                'prioritas', 'priority', 'status', 'scheduled_at',
+            ];
+            foreach ($columns as $col) {
+                if (Schema::hasColumn('notifications', $col)) {
+                    $table->dropColumn($col);
+                }
+            }
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Tambah index hanya jika belum ada di tabel.
      */
-    public function down(): void
+    private function addIndexIfNotExists(string $table, array $columns, string $indexName): void
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            // Drop added columns
-            $columns = [
-                'sender_id', 'receiver_id', 'receiver_type',
-                'tipe', 'type', 'judul', 'pesan', 'url_aksi',
-                'prioritas', 'priority', 'status', 'scheduled_at'
-            ];
-            
-            foreach ($columns as $column) {
-                if (Schema::hasColumn('notifications', $column)) {
-                    $table->dropColumn($column);
-                }
+        try {
+            $indexes = \DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
+            if (empty($indexes)) {
+                Schema::table($table, function (Blueprint $t) use ($columns, $indexName) {
+                    $t->index($columns, $indexName);
+                });
             }
-        });
+        } catch (\Throwable $e) {
+            // Abaikan jika index sudah ada atau terjadi error lain
+        }
     }
 };

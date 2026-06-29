@@ -59,6 +59,6 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer run-script post-autoload-dump || true
 EXPOSE $PORT
 
 CMD php artisan config:clear && \
-    php artisan migrate --force && \
-    php artisan storage:link || true && \
+    php artisan migrate --force --graceful 2>/dev/null || php artisan migrate --force 2>/dev/null || true && \
+    php artisan storage:link 2>/dev/null || true && \
     php -S 0.0.0.0:$PORT -t public
