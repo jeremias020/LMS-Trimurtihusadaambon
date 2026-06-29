@@ -33,16 +33,18 @@ WORKDIR /app
 # Copy composer files first (layer caching)
 COPY composer.json composer.lock ./
 
-# Install dependencies
+# Install dependencies (no-scripts to avoid needing artisan)
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --optimize-autoloader \
     --no-dev \
     --no-interaction \
-    --no-scripts \
-    && COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize
+    --no-scripts
 
 # Copy rest of application
 COPY . .
+
+# Regenerate autoload with optimized classmap (artisan is now available)
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize
 
 # Buat folder yang dibutuhkan Laravel jika belum ada
 RUN mkdir -p storage/app/public \
