@@ -35,18 +35,20 @@ use App\Http\Controllers\Guru\AttendanceControllerNew;
 use App\Http\Controllers\Guru\ScoringController as GuruScoringController;
 use App\Http\Controllers\Guru\ReportController as GuruReportController;
 use App\Http\Controllers\Guru\ProfileController as GuruProfileController;
-use App\Http\Controllers\Guru\SubmissionController as GuruSubmissionController;
 use App\Http\Controllers\Guru\SubmissionsController;
 use App\Http\Controllers\Guru\PenilaianController as GuruPenilaianController;
 use App\Http\Controllers\Guru\PracticalController as GuruPracticalController;
 
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\MaterialController as SiswaMaterialController;
+use App\Http\Controllers\Siswa\MaterialTrackingController as SiswaMaterialTrackingController;
 use App\Http\Controllers\Siswa\AssignmentController as SiswaAssignmentController;
 use App\Http\Controllers\Siswa\PracticalController as SiswaPracticalController;
 use App\Http\Controllers\Siswa\ScoreController as SiswaScoreController;
 use App\Http\Controllers\Siswa\AttendanceController as SiswaAttendanceController;
+use App\Http\Controllers\Siswa\PelajaranController as SiswaPelajaranController;
 use App\Http\Controllers\Siswa\ProfileController as SiswaProfileController;
+use App\Http\Controllers\Siswa\ProfileControllerNew;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +86,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     
     // Sistem User Terpisah (NEW) - MUST BE BEFORE RESOURCE ROUTE
     Route::get('/users/separated', [ModernUserController::class, 'index'])->name('users.separated');
+    Route::get('/users/admins', [ModernUserController::class, 'adminIndex'])->name('users.admins');
     Route::get('/users/guru', [ModernUserController::class, 'guruIndex'])->name('users.guru');
     Route::get('/users/siswa', [ModernUserController::class, 'siswaIndex'])->name('users.siswa');
     Route::get('/users/create/admin', [ModernUserController::class, 'createAdmin'])->name('users.create.admin');
@@ -92,6 +95,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/users/store/admin', [ModernUserController::class, 'storeAdmin'])->name('users.store.admin');
     Route::post('/users/store/guru', [ModernUserController::class, 'storeGuru'])->name('users.store.guru');
     Route::post('/users/store/siswa', [ModernUserController::class, 'storeSiswa'])->name('users.store.siswa');
+    // Edit & Update via ModernUserController (role-aware)
+    Route::get('/users/{user}/edit-modern', [ModernUserController::class, 'edit'])->name('users.edit.modern');
+    Route::put('/users/{user}/update-modern', [ModernUserController::class, 'update'])->name('users.update.modern');
+    Route::delete('/users/{user}/destroy-modern', [ModernUserController::class, 'destroy'])->name('users.destroy.modern');
     
     // Kelola Data User (RESOURCE ROUTE) - MUST BE AFTER SPECIFIC ROUTES
     Route::resource('users', AdminUserController::class);
@@ -145,12 +152,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('exam-schedules', AdminExamScheduleController::class);
     Route::post('exam-schedules/{examSchedule}/publish', [AdminExamScheduleController::class, 'publish'])->name('exam-schedules.publish');
     
-    // Settings (sementara dikomen sampai controller dibuat)
-    // Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
-    // Route::put('settings', [AdminSettingController::class, 'update'])->name('settings.update');
-    // Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
-    // Route::get('backup', [AdminBackupController::class, 'index'])->name('backup.index');
-    // Route::post('backup/create', [AdminBackupController::class, 'create'])->name('backup.create');
+    // Settings
+    Route::get('settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::put('settings', [AdminSettingController::class, 'update'])->name('settings.update');
+
+    // Notifications
+    Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])->name('notifications.create');
+    Route::post('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])->name('notifications.store');
+    Route::delete('notifications/{notification}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    
+    // Reports
+    Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/attendance', [AdminReportController::class, 'attendance'])->name('reports.attendance');
+    Route::get('reports/practical', [AdminReportController::class, 'practical'])->name('reports.practical');
     
     // Profile
     Route::get('profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -177,15 +192,17 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(functi
     Route::post('assignments/{assignment}/submissions/{submission}/grade', [GuruAssignmentController::class, 'grade'])->name('assignments.grade');
     
     // Praktikum Management
+    Route::post('praktikum/{praktikum}/toggle-publish', [GuruPracticalController::class, 'togglePublish'])->name('praktikum.toggle-publish');
+    Route::post('praktikum/{praktikum}/score', [GuruPracticalController::class, 'scoreStudent'])->name('praktikum.score');
     Route::resource('praktikum', GuruPracticalController::class);
-    // Praktikums (English alias) - to support legacy route('guru.practicals.*') usage in views
-    Route::resource('practicals', GuruPracticalController::class)->names([
-        'index' => 'practicals.index',
-        'create' => 'practicals.create',
-        'store' => 'practicals.store',
-        'show' => 'practicals.show',
-        'edit' => 'practicals.edit',
-        'update' => 'practicals.update',
+    // Alias English names for backward compatibility
+    Route::resource('practicals', GuruPracticalController::class)->parameters(['practicals' => 'praktikum'])->names([
+        'index'   => 'practicals.index',
+        'create'  => 'practicals.create',
+        'store'   => 'practicals.store',
+        'show'    => 'practicals.show',
+        'edit'    => 'practicals.edit',
+        'update'  => 'practicals.update',
         'destroy' => 'practicals.destroy'
     ]);
     
@@ -212,6 +229,8 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(functi
     })->name('absensi.report');
     // Praktik attendance
     Route::get('absensi/praktik', [GuruAttendanceController::class, 'praktikAttendance'])->name('absensi.praktik');
+    // AJAX: siswa by kelas
+    Route::get('absensi/siswa-by-kelas', [GuruAttendanceController::class, 'getSiswaByKelas'])->name('absensi.siswa-by-kelas');
     
     // Praktik attendance routes removed
     
@@ -230,24 +249,19 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(functi
     Route::get('submissions/{submission}', [SubmissionsController::class, 'show'])->name('submissions.show');
     Route::post('submissions/{submission}/grade', [SubmissionsController::class, 'grade'])->name('submissions.grade');
     
-    // Penilaian (Grading) Management
+    // ── Penilaian Praktik Berbasis SOP ──
     Route::get('penilaian', [GuruPenilaianController::class, 'index'])->name('penilaian.index');
-    Route::get('penilaian/create', [GuruPenilaianController::class, 'create'])->name('penilaian.create');
-    Route::post('penilaian', [GuruPenilaianController::class, 'store'])->name('penilaian.store');
-    Route::get('penilaian/{submission}/edit', [GuruPenilaianController::class, 'edit'])->name('penilaian.edit');
-    Route::put('penilaian/{submission}', [GuruPenilaianController::class, 'update'])->name('penilaian.update');
-    Route::delete('penilaian/{submission}', [GuruPenilaianController::class, 'destroy'])->name('penilaian.destroy');
-    
-    // Auto Assessment for Practical
-    Route::get('penilaian/auto', [GuruPenilaianController::class, 'autoAssessment'])->name('penilaian.auto');
-    Route::post('penilaian/auto/save', [GuruPenilaianController::class, 'saveAutoAssessment'])->name('penilaian.auto.save');
-    
-    // Auto Assessment with Criteria
-    Route::get('penilaian/auto-criteria', [GuruPenilaianController::class, 'autoWithCriteria'])->name('penilaian.auto.criteria');
-    Route::post('penilaian/auto-criteria/save', [GuruPenilaianController::class, 'saveAutoAssessmentWithCriteria'])->name('penilaian.auto.criteria.save');
-    
-    // Penilaian Export
     Route::get('penilaian/export', [GuruPenilaianController::class, 'export'])->name('penilaian.export');
+    // Atur SOP (halaman, bukan modal)
+    Route::get('penilaian/praktik/{practical}/sop', [GuruPenilaianController::class, 'sopForm'])->name('penilaian.praktik.sop.form');
+    Route::post('penilaian/praktik/{practical}/sop', [GuruPenilaianController::class, 'sopStore'])->name('penilaian.praktik.sop.store');
+    // Nilai per siswa
+    Route::get('penilaian/praktik/{practical}/nilai', [GuruPenilaianController::class, 'praktikNilai'])->name('penilaian.praktik.nilai');
+    Route::post('penilaian/praktik/{practical}/nilai', [GuruPenilaianController::class, 'storePraktikNilai'])->name('penilaian.praktik.nilai.store');
+    // Edit / Hapus nilai
+    Route::get('penilaian/{id}/edit', [GuruPenilaianController::class, 'edit'])->name('penilaian.edit');
+    Route::put('penilaian/{id}', [GuruPenilaianController::class, 'update'])->name('penilaian.update');
+    Route::delete('penilaian/{id}', [GuruPenilaianController::class, 'destroy'])->name('penilaian.destroy');
     
     // Scoring Management (commented until controller is created)
     // Route::resource('scoring', GuruScoringController::class);
@@ -267,33 +281,10 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(functi
     
     // Laporan (Report) routes with Indonesian naming
     Route::get('laporan', [GuruReportController::class, 'index'])->name('laporan.index');
-    
-    // Absensi (Attendance) Reports
     Route::get('laporan/absensi', [GuruReportController::class, 'absensi'])->name('laporan.absensi');
-    Route::get('laporan/absensi/bulanan', [GuruReportController::class, 'absensi'])->name('laporan.absensi.bulanan');
-    Route::get('laporan/absensi/semester', [GuruReportController::class, 'absensi'])->name('laporan.absensi.semester');
-    
-    // Praktik reports removed
-    
-    // Tugas (Assignment) Reports
+    Route::get('laporan/praktik', [GuruReportController::class, 'praktik'])->name('laporan.praktik');
     Route::get('laporan/tugas', [GuruReportController::class, 'tugas'])->name('laporan.tugas');
-    Route::get('laporan/tugas/nilai', [GuruReportController::class, 'tugas'])->name('laporan.tugas.nilai');
-    Route::get('laporan/tugas/terlambat', [GuruReportController::class, 'tugas'])->name('laporan.tugas.terlambat');
-    
-    // Nilai (Grade) Reports
-    Route::get('laporan/nilai', [GuruReportController::class, 'absensi'])->name('laporan.nilai');
-    Route::get('laporan/nilai/mid', [GuruReportController::class, 'absensi'])->name('laporan.nilai.mid');
-    Route::get('laporan/nilai/semester', [GuruReportController::class, 'absensi'])->name('laporan.nilai.semester');
-    
-    // Siswa (Student) Reports
-    Route::get('laporan/siswa', [GuruReportController::class, 'absensi'])->name('laporan.siswa');
-    Route::get('laporan/siswa/detail', [GuruReportController::class, 'absensi'])->name('laporan.siswa.detail');
-    Route::get('laporan/siswa/prestasi', [GuruReportController::class, 'absensi'])->name('laporan.siswa.prestasi');
-    
-    // Material Reports
     Route::get('laporan/materi', [GuruReportController::class, 'materi'])->name('laporan.materi');
-    
-    // Export and Generate
     Route::post('laporan/generate', [GuruReportController::class, 'generate'])->name('laporan.generate');
     
     // Profile
@@ -301,6 +292,8 @@ Route::prefix('guru')->name('guru.')->middleware(['auth', 'guru'])->group(functi
     Route::put('profile', [GuruProfileController::class, 'update'])->name('profile.update');
     Route::post('profile/photo', [GuruProfileController::class, 'updatePhoto'])->name('profile.update-photo');
     Route::post('profile/remove-photo', [GuruProfileController::class, 'removePhoto'])->name('profile.remove-photo');
+    Route::get('profile/change-password', [GuruProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::post('profile/change-password', [GuruProfileController::class, 'changePassword'])->name('profile.change-password.post');
 });
 
 // ✅ SISWA ROUTES - middleware digabung dalam array
@@ -318,6 +311,11 @@ Route::prefix('siswa')->name('siswa.')->middleware(['auth', 'siswa'])->group(fun
     Route::get('materials/{material}/download', [SiswaMaterialController::class, 'download'])->name('materials.download');
     Route::post('materials/{material}/track-download', [SiswaMaterialController::class, 'trackDownload'])->name('materials.track-download');
     Route::get('materials/search', [SiswaMaterialController::class, 'search'])->name('materials.search');
+    
+    // Material Tracking - Track views and downloads
+    Route::post('materials/{material}/track-view', [SiswaMaterialTrackingController::class, 'trackView'])->name('materials.track-view');
+    Route::post('materials/{material}/track-download', [SiswaMaterialTrackingController::class, 'trackDownload'])->name('materials.track-download-api');
+    Route::get('materials/stats', [SiswaMaterialTrackingController::class, 'getStudentStats'])->name('materials.stats');
     
     // Soal/Quiz - Siswa dapat mengakses, mengunduh, dan mengirimkan tugas
     Route::get('assignments', [SiswaAssignmentController::class, 'index'])->name('assignments.index');
@@ -352,8 +350,8 @@ Route::prefix('siswa')->name('siswa.')->middleware(['auth', 'siswa'])->group(fun
     Route::get('absensi/export', [SiswaAttendanceController::class, 'export'])->name('absensi.export');
     
     // Kelola Profil Siswa
-    Route::get('profile', [SiswaProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [SiswaProfileController::class, 'update'])->name('profile.update');
+    Route::get('profile', [ProfileControllerNew::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileControllerNew::class, 'update'])->name('profile.update');
 });
 
 // File Download Routes

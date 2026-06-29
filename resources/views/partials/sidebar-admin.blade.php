@@ -57,12 +57,12 @@
                         <i class="fas fa-chevron-down ms-auto nav-icon" style="font-size: 0.75rem; transition: transform 0.3s;"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="usersDropdown" 
-                        style="background: #334155; border: 1px solid rgba(255,255,255,0.1); min-width: 200px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); position: absolute; z-index: 1050;">
+                        style="background: #334155; border: 1px solid rgba(255,255,255,0.1); min-width: 220px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); position: absolute; z-index: 1050;">
                         <li>
-                            <a href="{{ route('admin.users.separated') }}" class="dropdown-item d-flex align-items-center text-white {{ request()->routeIs('admin.users.separated') ? 'active' : '' }}" 
+                            <a href="{{ route('admin.users.admins') }}" class="dropdown-item d-flex align-items-center text-white {{ request()->routeIs('admin.users.admins') ? 'active' : '' }}" 
                                style="padding: 0.5rem 1rem; transition: all 0.2s; color: rgba(255,255,255,0.8);">
-                                <i class="fas fa-table-columns me-2" style="width: 16px; font-size: 0.875rem;"></i>
-                                <span>Semua Users</span>
+                                <i class="fas fa-user-shield me-2" style="width: 16px; font-size: 0.875rem;"></i>
+                                <span>Administrator</span>
                             </a>
                         </li>
                         <li>
@@ -77,14 +77,6 @@
                                style="padding: 0.5rem 1rem; transition: all 0.2s; color: rgba(255,255,255,0.8);">
                                 <i class="fas fa-user-graduate me-2" style="width: 16px; font-size: 0.875rem;"></i>
                                 <span>Siswa</span>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.1);"></li>
-                        <li>
-                            <a href="{{ route('admin.users.index') }}" class="dropdown-item d-flex align-items-center text-white {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" 
-                               style="padding: 0.5rem 1rem; transition: all 0.2s; color: rgba(255,255,255,0.8);">
-                                <i class="fas fa-users-cog me-2" style="width: 16px; font-size: 0.875rem;"></i>
-                                <span>Users (Lama)</span>
                             </a>
                         </li>
                     </ul>
@@ -110,6 +102,52 @@
                     <span class="nav-text">Jadwal Ujian</span>
                 </a>
             </div>
+
+            <!-- Konten Section -->
+            <div class="mb-3">
+                <div class="nav-section-title px-2 py-1 mb-2">
+                    <small class="text-light opacity-75 fw-medium">KONTEN</small>
+                </div>
+                <a href="{{ route('admin.materials.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.materials.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-book-open me-2 nav-icon"></i>
+                    <span class="nav-text">Materi</span>
+                </a>
+                <a href="{{ route('admin.assignments.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.assignments.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-tasks me-2 nav-icon"></i>
+                    <span class="nav-text">Tugas</span>
+                </a>
+                <a href="{{ route('admin.practicals.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.practicals.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-flask me-2 nav-icon"></i>
+                    <span class="nav-text">Praktikum</span>
+                </a>
+                <a href="{{ route('admin.attendance.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.attendance.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-clipboard-list me-2 nav-icon"></i>
+                    <span class="nav-text">Absensi</span>
+                </a>
+            </div>
+
+            <!-- Sistem Section -->
+            <div class="mb-3">
+                <div class="nav-section-title px-2 py-1 mb-2">
+                    <small class="text-light opacity-75 fw-medium">SISTEM</small>
+                </div>
+                <a href="{{ route('admin.reports.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.reports.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-chart-bar me-2 nav-icon"></i>
+                    <span class="nav-text">Laporan</span>
+                </a>
+                <a href="{{ route('admin.notifications.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.notifications.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-bell me-2 nav-icon"></i>
+                    <span class="nav-text">Notifikasi</span>
+                </a>
+                <a href="{{ route('admin.settings.index') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.settings.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-cog me-2 nav-icon"></i>
+                    <span class="nav-text">Pengaturan</span>
+                </a>
+                <a href="{{ route('admin.profile.edit') }}" class="nav-link d-flex align-items-center p-2 rounded text-white {{ request()->routeIs('admin.profile.*') ? 'active bg-primary' : 'hover-bg' }}">
+                    <i class="fas fa-user-circle me-2 nav-icon"></i>
+                    <span class="nav-text">Profil Saya</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -125,9 +163,6 @@
         </div>
     </div>
 </nav>
-
-<!-- Sidebar Overlay for Mobile -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <style>
 /* Standardized Sidebar Styles (Match Guru/Siswa) */
@@ -246,12 +281,6 @@ body.admin-layout .admin-sidebar.collapsed {
 
 .sidebar.collapsed .sidebar-toggle {
     margin: 0 auto !important;
-}
-
-/* Ensure sidebar remains interactive */
-.sidebar {
-    pointer-events: auto !important;
-    z-index: 1030 !important;
 }
 
 .sidebar * {
@@ -494,56 +523,47 @@ body.admin-layout .admin-sidebar.collapsed {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Sidebar script initializing...');
-  
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const mainContent = document.getElementById('main-content') || document.querySelector('.main-content');
+  var STORAGE_KEY = 'lmsSidebar:admin';
+  var sidebar = document.querySelector('.sidebar.admin-sidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var mainContent = document.getElementById('main-content') || document.querySelector('.main-content');
 
-  console.log('📦 Elements found:', {
-    sidebar: !!sidebar,
-    overlay: !!overlay,
-    mainContent: !!mainContent
+  var dropdownToggles = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+  dropdownToggles.forEach(function (el) {
+    if (el.id === 'usersDropdown') return;
+    try {
+      new bootstrap.Dropdown(el);
+    } catch (err) {}
   });
 
-  // Initialize Bootstrap dropdowns
-  const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-  const dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-    return new bootstrap.Dropdown(dropdownToggleEl);
-  });
-
-  // Custom dropdown handling for sidebar
-  const usersDropdown = document.getElementById('usersDropdown');
-  if (usersDropdown) {
+  var usersDropdown = document.getElementById('usersDropdown');
+  if (usersDropdown && sidebar) {
     usersDropdown.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      
-      const dropdown = this.closest('.dropdown');
-      const menu = dropdown.querySelector('.dropdown-menu');
-      const isShowing = dropdown.classList.contains('show');
-      
-      // Close all other dropdowns
-      document.querySelectorAll('.dropdown').forEach(d => {
+
+      var dropdown = this.closest('.dropdown');
+      var menu = dropdown.querySelector('.dropdown-menu');
+      var isShowing = dropdown.classList.contains('show');
+
+      document.querySelectorAll('.sidebar .dropdown').forEach(function(d) {
         d.classList.remove('show');
-        const m = d.querySelector('.dropdown-menu');
+        var m = d.querySelector('.dropdown-menu');
         if (m) m.style.display = 'none';
       });
-      
+
       if (!isShowing) {
         dropdown.classList.add('show');
         menu.style.display = 'block';
         this.setAttribute('aria-expanded', 'true');
-        
-        // Position dropdown correctly
-        const rect = this.getBoundingClientRect();
-        const sidebarRect = sidebar.getBoundingClientRect();
-        
+
+        var rect = this.getBoundingClientRect();
+        var sidebarRect = sidebar.getBoundingClientRect();
+
         menu.style.top = (rect.bottom - sidebarRect.top) + 'px';
         menu.style.left = '0';
         menu.style.right = 'auto';
-        
-        // Adjust if sidebar is collapsed
+
         if (sidebar.classList.contains('collapsed')) {
           menu.style.left = '100%';
           menu.style.top = '0';
@@ -557,122 +577,98 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Close dropdowns when clicking outside
   document.addEventListener('click', function(e) {
-    if (!e.target.closest('.dropdown')) {
-      document.querySelectorAll('.dropdown').forEach(d => {
-        d.classList.remove('show');
-        const m = d.querySelector('.dropdown-menu');
-        if (m) m.style.display = 'none';
-      });
-      document.querySelectorAll('.dropdown-toggle').forEach(t => {
-        t.setAttribute('aria-expanded', 'false');
-      });
-    }
+    if (e.target.closest('.sidebar .dropdown')) return;
+    document.querySelectorAll('.sidebar .dropdown').forEach(function(d) {
+      d.classList.remove('show');
+      var m = d.querySelector('.dropdown-menu');
+      if (m) m.style.display = 'none';
+    });
+    var ud = document.getElementById('usersDropdown');
+    if (ud) ud.setAttribute('aria-expanded', 'false');
   });
 
-  function toggleSidebar() {
-    console.log('🔄 Toggle function called');
-    if (!sidebar) {
-      console.error('❌ Sidebar element not found!');
-      return;
+  function updateFooterChevron(collapsed) {
+    var footerIcon = document.querySelector('.sidebar-footer .sidebar-toggle i');
+    if (footerIcon) {
+      footerIcon.className = collapsed ? 'fas fa-angle-right' : 'fas fa-angle-left';
     }
-    
-    const isCollapsed = sidebar.classList.contains('collapsed');
-    console.log('🔄 Toggle clicked, current state:', isCollapsed);
-    
-    if (isCollapsed) {
-      // EXPAND SIDEBAR
-      sidebar.classList.remove('collapsed');
-      
-      // Update icon
-      const toggleIcon = document.querySelector('.sidebar-toggle i');
-      if (toggleIcon) {
-        toggleIcon.className = 'fas fa-angle-left';
-        console.log('🎨 Icon updated to fa-angle-left');
-      }
-      
-      // Update main content
-      if (mainContent) {
-        mainContent.classList.remove('sidebar-collapsed');
-        console.log('📱 Main content class removed');
-      }
-      
-      console.log('✅ Sidebar expanded');
-      
-    } else {
-      // COLLAPSE SIDEBAR
-      sidebar.classList.add('collapsed');
-      
-      // Update icon
-      const toggleIcon = document.querySelector('.sidebar-toggle i');
-      if (toggleIcon) {
-        toggleIcon.className = 'fas fa-angle-right';
-        console.log('🎨 Icon updated to fa-angle-right');
-      }
-      
-      // Update main content
-      if (mainContent) {
-        mainContent.classList.add('sidebar-collapsed');
-        console.log('📱 Main content class added');
-      }
-      
-      console.log('✅ Sidebar collapsed');
-    }
-    
-    // Save state
-    localStorage.setItem('sidebarCollapsed', !isCollapsed);
-    console.log('💾 State saved:', !isCollapsed);
   }
 
-  // Bind all toggle buttons
-  const headerToggle = document.getElementById('sidebarToggle');
-  const footerToggles = document.querySelectorAll('.sidebar-toggle');
-  
-  console.log('🎯 Toggle buttons found:', {
-    headerToggle: !!headerToggle,
-    footerToggles: footerToggles.length
-  });
-  
+  function setCollapsed(collapsed) {
+    if (!sidebar) return;
+
+    sidebar.classList.toggle('collapsed', collapsed);
+    updateFooterChevron(collapsed);
+
+    if (mainContent) {
+      mainContent.classList.toggle('sidebar-collapsed', collapsed);
+    }
+
+    localStorage.setItem(STORAGE_KEY, collapsed ? 'true' : 'false');
+  }
+
+  function toggleCollapseDesktop() {
+    if (!sidebar) return;
+    setCollapsed(!sidebar.classList.contains('collapsed'));
+  }
+
+  function toggleMobileDrawer() {
+    if (!sidebar) return;
+    sidebar.classList.toggle('show');
+    if (overlay) overlay.classList.toggle('active');
+  }
+
+  var headerToggle = document.getElementById('sidebarToggle');
+  var mobileToggle = document.getElementById('mobileSidebarToggle');
+  var footerToggles = document.querySelectorAll('.sidebar-footer .sidebar-toggle');
+
   if (headerToggle) {
     headerToggle.addEventListener('click', function(e) {
-      console.log('🖱️ Header toggle clicked');
       e.preventDefault();
-      toggleSidebar();
+      toggleCollapseDesktop();
     });
-    console.log('✅ Header toggle event bound');
   }
-  
-  footerToggles.forEach((btn, index) => {
-    btn.addEventListener('click', function(e) {
-      console.log('🖱️ Footer toggle', index, 'clicked');
+
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', function(e) {
       e.preventDefault();
-      toggleSidebar();
+      e.stopPropagation();
+      toggleMobileDrawer();
     });
-    console.log('✅ Footer toggle', index, 'event bound');
+  }
+
+  footerToggles.forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (window.innerWidth <= 768) return;
+      toggleCollapseDesktop();
+    });
   });
 
-  // Restore state on load
-  const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-  console.log('💾 Restored state:', isCollapsed);
-  
-  if (isCollapsed) {
-    sidebar.classList.add('collapsed');
-    
-    // Update icon
-    const toggleIcon = document.querySelector('.sidebar-toggle i');
-    if (toggleIcon) {
-      toggleIcon.className = 'fas fa-angle-right';
-      console.log('🎨 Initial icon set to fa-angle-right');
-    }
-    
-    // Update main content
-    if (mainContent) {
-      mainContent.classList.add('sidebar-collapsed');
-      console.log('📱 Initial main content class added');
-    }
+  if (overlay && sidebar) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('active');
+    });
   }
 
-  console.log('🎉 Sidebar toggle initialized successfully');
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth > 768 || !sidebar) return;
+    if (!e.target.closest('.sidebar, #mobileSidebarToggle')) {
+      sidebar.classList.remove('show');
+      if (overlay) overlay.classList.remove('active');
+    }
+  });
+
+  var legacy = localStorage.getItem('sidebarCollapsed') === 'true';
+  var hasNew = localStorage.getItem(STORAGE_KEY) !== null;
+  var savedCollapsed = localStorage.getItem(STORAGE_KEY) === 'true' || (legacy && !hasNew);
+  if (savedCollapsed) {
+    setCollapsed(true);
+  }
+  if (legacy && !hasNew) {
+    localStorage.removeItem('sidebarCollapsed');
+  }
 });
 </script>
