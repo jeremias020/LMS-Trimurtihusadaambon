@@ -13,12 +13,16 @@ nixPkgs = [
     "php82Extensions.curl",
     "php82Extensions.zip",
     "php82Extensions.gd",
+    "php82Extensions.intl",
+    "php82Extensions.sodium",
+    "php82Extensions.opcache",
+    "php82Extensions.exif",
     "composer"
 ]
 
 [phases.install]
 cmds = [
-    "composer install --optimize-autoloader --no-dev --no-interaction --no-scripts"
+    "COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader --no-dev --no-interaction --no-scripts"
 ]
 
 [start]
