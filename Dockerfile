@@ -42,6 +42,10 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize
 # STEP 6: Jalankan post-autoload scripts (package:discover)
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer run-script post-autoload-dump 2>/dev/null || true
 
-EXPOSE $PORT
+# Copy startup script dan set permission
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-CMD sh -c "php artisan config:clear 2>/dev/null; php artisan migrate --force 2>&1 | tee /tmp/migrate.log || echo 'Migration had errors, continuing...'; php artisan storage:link 2>/dev/null || true; echo 'Starting PHP server on port '${PORT:-8080}; exec php -S 0.0.0.0:${PORT:-8080} -t public"
+EXPOSE 8080
+
+CMD ["/app/start.sh"]
