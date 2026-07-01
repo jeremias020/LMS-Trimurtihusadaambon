@@ -23,8 +23,7 @@ php artisan db:seed --class=AdminSeeder --force 2>/dev/null || true
 php artisan storage:link 2>/dev/null || true
 
 # Cache config for production
-php artisan config:cache 2>/dev/null || true
-php artisan route:cache 2>/dev/null || true
+php artisan view:cache 2>/dev/null || true
 
 echo "Starting PHP built-in server on 0.0.0.0:$PORT"
 exec php -S "0.0.0.0:$PORT" -t public
