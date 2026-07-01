@@ -15,6 +15,10 @@ php artisan config:clear 2>/dev/null || true
 echo "Running migrations..."
 php artisan migrate --force 2>&1 || echo "Migration errors (continuing...)"
 
+# Seed admin user jika belum ada
+echo "Seeding default admin..."
+php artisan db:seed --class=AdminSeeder --force 2>/dev/null || true
+
 # Create storage symlink
 php artisan storage:link 2>/dev/null || true
 
