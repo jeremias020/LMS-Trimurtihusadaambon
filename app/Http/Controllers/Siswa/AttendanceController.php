@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Siswa;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
@@ -19,183 +17,167 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Display a listing of attendances for the month.
+     * Rekap absensi per bulan.
      */
     public function index(Request $request): View
     {
-        $siswaId = Auth::id();
+        $user    = Auth::user();
+        $siswaId = $user->id;
+        $kelasId = $user->siswa?->kelas_id;
 
-        // ✅ Validasi dan sanitize input
-        $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
-        $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
+        $month = min(max(1, (int) $request->input('month', Carbon::now()->month)), 12);
+        $year  = max(2000, min((int) $request->input('year', Carbon::now()->year), 2100));
 
         $attendances = Attendance::with(['subject'])
             ->where('siswa_id', $siswaId)
+            ->when($kelasId, fn($q) => $q->where('kelas_id', $kelasId))
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderBy('date', 'desc')
-            ->paginate(20);
-
-        $monthlyStats = $this->getMonthlyStats($siswaId, $month, $year);
-        $totalStats = $this->getTotalStats($siswaId);
-
-        return view('siswa.absensi.index', compact('attendances', 'monthlyStats', 'totalStats', 'month', 'year'));
-    }
-
-    protected function getMonthlyStats($siswaId, $month = null, $year = null)
-    {
-        $month = $month ?? Carbon::now()->month;
-        $year = $year ?? Carbon::now()->year;
-
-        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
-
-        $stats = Attendance::selectRaw('status, COUNT(*) as count')
-            ->where('siswa_id', $siswaId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->groupBy('status')
             ->get();
 
-        $total = $stats->sum('count');
-        $present = $stats->where('status', 'hadir')->first()?->count ?? 0;
-        $workingDays = $this->getWorkingDays($month, $year);
+        $monthlyStats = $this->getMonthlyStats($siswaId, $kelasId, $month, $year);
 
-        return [
-            'total' => $total,
-            'present' => $present,
-            'absent' => $stats->where('status', 'alpha')->first()?->count ?? 0,
-            'permission' => $stats->whereIn('status', ['izin', 'sakit'])->sum('count'),
-            'percentage' => $total > 0 ? round(($present / $total) * 100, 2) : 0,
-            'breakdown' => $stats,
-            'working_days' => $workingDays,
-            'attendance_rate' => $workingDays > 0 ? round(($present / $workingDays) * 100, 2) : 0
-        ];
-    }
-
-    protected function getTotalStats($siswaId)
-    {
-        $stats = Attendance::selectRaw('status, COUNT(*) as count')
-            ->where('siswa_id', $siswaId)
-            ->groupBy('status')
-            ->get();
-
-        $total = $stats->sum('count');
-        $present = $stats->where('status', 'hadir')->first()?->count ?? 0;
-
-        return [
-            'total' => $total,
-            'present' => $present,
-            'absent' => $stats->where('status', 'alpha')->first()?->count ?? 0,
-            'permission' => $stats->whereIn('status', ['izin', 'sakit'])->sum('count'),
-            'percentage' => $total > 0 ? round(($present / $total) * 100, 2) : 0,
-            'breakdown' => $stats
-        ];
-    }
-
-    protected function getWorkingDays($month, $year)
-    {
-        $startDate = Carbon::create($year, $month, 1);
-        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
-
-        $workingDays = 0;
-        $currentDate = $startDate->copy();
-
-        while ($currentDate <= $endDate) {
-            if (!$currentDate->isWeekend()) {
-                $workingDays++;
-            }
-            $currentDate->addDay();
-        }
-
-        return $workingDays;
+        return view('siswa.absensi.index', compact(
+            'attendances', 'monthlyStats', 'month', 'year'
+        ));
     }
 
     /**
-     * Display the specified attendance record.
+     * Export rekap absensi ke CSV.
      */
-    public function show($id): View
+    public function export(Request $request)
     {
-        $attendance = Attendance::where('siswa_id', Auth::id())
-            ->findOrFail($id);
+        $user    = Auth::user();
+        $siswaId = $user->id;
+        $kelasId = $user->siswa?->kelas_id;
 
-        return view('siswa.absensi.show', compact('attendance'));
-    }
-
-    /**
-     * Export attendance report.
-     */
-    public function export(Request $request): View
-    {
-        $siswaId = Auth::id();
-        $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
-        $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
+        $month = min(max(1, (int) $request->input('month', Carbon::now()->month)), 12);
+        $year  = max(2000, min((int) $request->input('year', Carbon::now()->year), 2100));
 
         $attendances = Attendance::with(['subject'])
             ->where('siswa_id', $siswaId)
+            ->when($kelasId, fn($q) => $q->where('kelas_id', $kelasId))
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderBy('date', 'asc')
             ->get();
 
-        $stats = $this->getMonthlyStats($siswaId, $month, $year);
+        $stats    = $this->getMonthlyStats($siswaId, $kelasId, $month, $year);
+        $bulan    = Carbon::createFromDate($year, $month, 1)->locale('id')->monthName;
+        $filename = 'absensi-' . $user->id . '-' . $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '.csv';
 
-        Log::info('Attendance report exported', [
-            'siswa_id' => $siswaId,
-            'month' => $month,
-            'year' => $year,
-            'ip' => $request->ip()
-        ]);
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
 
-        return view('siswa.absensi.export', compact('attendances', 'stats', 'month', 'year'));
+        $callback = function () use ($attendances, $stats, $bulan, $year, $user) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['Rekap Absensi - ' . $user->name]);
+            fputcsv($handle, ['Periode: ' . $bulan . ' ' . $year]);
+            fputcsv($handle, []);
+            fputcsv($handle, ['Tanggal', 'Hari', 'Mata Pelajaran', 'Status', 'Keterangan']);
+
+            foreach ($attendances as $a) {
+                $statusLabel = match (strtolower($a->status ?? '')) {
+                    'hadir', 'present' => 'Hadir',
+                    'izin'             => 'Izin',
+                    'sakit', 'sick'    => 'Sakit',
+                    default            => 'Alpa',
+                };
+                fputcsv($handle, [
+                    $a->date->format('d/m/Y'),
+                    $a->date->locale('id')->dayName,
+                    $a->subject?->name ?? $a->subject?->nama ?? '—',
+                    $statusLabel,
+                    $a->note ?? '—',
+                ]);
+            }
+
+            fputcsv($handle, []);
+            fputcsv($handle, ['Ringkasan']);
+            fputcsv($handle, ['Hadir',  $stats['hadir']]);
+            fputcsv($handle, ['Izin',   $stats['izin']]);
+            fputcsv($handle, ['Sakit',  $stats['sakit']]);
+            fputcsv($handle, ['Alpa',   $stats['alpa']]);
+            fputcsv($handle, ['Total',  $stats['total']]);
+            fputcsv($handle, ['Persentase', $stats['attendance_rate'] . '%']);
+            fclose($handle);
+        };
+
+        return response()->streamDownload($callback, $filename, $headers);
     }
 
-    /**
-     * Get attendance data in JSON format (API).
-     */
-    public function apiIndex(Request $request): JsonResponse
+    public function show($id): View
     {
-        $siswaId = Auth::id();
-        $month = min(max(1, (int)$request->input('month', Carbon::now()->month)), 12);
-        $year = max(2000, min((int)$request->input('year', Carbon::now()->year), 2100));
+        $attendance = Attendance::with(['subject'])
+            ->where('siswa_id', Auth::id())
+            ->findOrFail($id);
 
-        $attendances = Attendance::with(['subject'])
+        return view('siswa.absensi.show', compact('attendance'));
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    protected function getMonthlyStats(int $siswaId, ?int $kelasId, int $month, int $year): array
+    {
+        $rows = Attendance::selectRaw('status, COUNT(*) as count')
             ->where('siswa_id', $siswaId)
+            ->when($kelasId, fn($q) => $q->where('kelas_id', $kelasId))
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
-            ->orderBy('date', 'desc')
+            ->groupBy('status')
             ->get();
 
-        $stats = $this->getMonthlyStats($siswaId, $month, $year);
+        $hadir = 0; $izin = 0; $sakit = 0; $alpa = 0;
+        foreach ($rows as $row) {
+            $st = strtolower($row->status ?? '');
+            match (true) {
+                in_array($st, ['hadir', 'present']) => $hadir += $row->count,
+                in_array($st, ['sakit', 'sick'])    => $sakit += $row->count,
+                $st === 'izin'                      => $izin  += $row->count,
+                default                             => $alpa  += $row->count,
+            };
+        }
 
-        Log::info('Attendance data accessed via API', [
-            'siswa_id' => $siswaId,
-            'month' => $month,
-            'year' => $year,
-            'ip' => $request->ip()
-        ]);
+        $total          = $hadir + $izin + $sakit + $alpa;
+        $percentage     = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
+        $workingDays    = $this->countWorkingDays($month, $year);
+        $attendanceRate = $workingDays > 0 ? round(($hadir / $workingDays) * 100, 1) : $percentage;
 
-        return response()->json([
-            'attendances' => $attendances,
-            'stats' => $stats,
-            'month' => $month,
-            'year' => $year
-        ]);
+        return [
+            'hadir'           => $hadir,
+            'izin'            => $izin,
+            'sakit'           => $sakit,
+            'alpa'            => $alpa,
+            'total'           => $total,
+            'percentage'      => $percentage,
+            'attendance_rate' => $attendanceRate,
+            'present'         => $hadir,
+            'absent'          => $alpa,
+            'permission'      => $izin + $sakit,
+            'working_days'    => $workingDays,
+            'breakdown'       => collect([
+                (object)['status' => 'hadir', 'count' => $hadir],
+                (object)['status' => 'izin',  'count' => $izin],
+                (object)['status' => 'sakit', 'count' => $sakit],
+                (object)['status' => 'alpha', 'count' => $alpa],
+            ]),
+        ];
     }
 
-    /**
-     * Display medical records (sick/permission attendance).
-     */
-    public function medicalRecords(): View
+    protected function countWorkingDays(int $month, int $year): int
     {
-        $siswaId = Auth::id();
-
-        $medicalRecords = Attendance::where('siswa_id', $siswaId)
-            ->whereIn('status', ['sakit', 'izin'])
-            ->whereNotNull('keterangan')
-            // ->with('approval') // ✅ Hapus jika tidak ada relasi
-            ->orderBy('date', 'desc')
-            ->paginate(10);
-
-        return view('siswa.absensi.medical', compact('medicalRecords'));
+        $start   = Carbon::create($year, $month, 1)->startOfMonth();
+        $end     = Carbon::create($year, $month, 1)->endOfMonth();
+        $days    = 0;
+        $current = $start->copy();
+        while ($current <= $end) {
+            if (!$current->isWeekend()) $days++;
+            $current->addDay();
+        }
+        return $days;
     }
 }
