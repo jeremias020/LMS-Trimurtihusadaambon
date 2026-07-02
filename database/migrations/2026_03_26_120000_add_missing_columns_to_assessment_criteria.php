@@ -41,10 +41,16 @@ return new class extends Migration
                 $table->json('sop_checklist')->nullable();
             }
             
-            // Add indexes safely
-            try { $table->index('is_active'); } catch (\Throwable $e) {}
-            try { $table->index('type'); } catch (\Throwable $e) {}
-            try { $table->index('subject_id'); } catch (\Throwable $e) {}
+            // Add indexes
+            if (!Schema::hasIndex('assessment_criteria', 'assessment_criteria_is_active_index')) {
+                $table->index('is_active');
+            }
+            if (!Schema::hasIndex('assessment_criteria', 'assessment_criteria_type_index')) {
+                $table->index('type');
+            }
+            if (!Schema::hasIndex('assessment_criteria', 'assessment_criteria_subject_id_index')) {
+                $table->index('subject_id');
+            }
         });
     }
 

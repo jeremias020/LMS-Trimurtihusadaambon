@@ -55,30 +55,22 @@ return new class extends Migration
                 $table->index('subject_id');
             }
             
-            // Add foreign key constraints - wrapped in try/catch
-            try {
-                if (Schema::hasColumn('attendances', 'recorded_by')) {
-                    $table->foreign('recorded_by')->references('id')->on('users_central')->onDelete('set null');
-                }
-            } catch (\Throwable $e) {}
-
-            try {
-                if (Schema::hasColumn('attendances', 'siswa_id')) {
-                    $table->foreign('siswa_id')->references('id')->on('users_central')->onDelete('cascade');
-                }
-            } catch (\Throwable $e) {}
-
-            try {
-                if (Schema::hasColumn('attendances', 'practical_id')) {
-                    $table->foreign('practical_id')->references('id')->on('practicals')->onDelete('set null');
-                }
-            } catch (\Throwable $e) {}
-
-            try {
-                if (Schema::hasColumn('attendances', 'subject_id')) {
-                    $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('set null');
-                }
-            } catch (\Throwable $e) {}
+            // Add foreign key constraints
+            if (Schema::hasColumn('attendances', 'recorded_by')) {
+                $table->foreign('recorded_by')->references('id')->on('users_central')->onDelete('set null');
+            }
+            
+            if (Schema::hasColumn('attendances', 'siswa_id')) {
+                $table->foreign('siswa_id')->references('id')->on('users_central')->onDelete('cascade');
+            }
+            
+            if (Schema::hasColumn('attendances', 'practical_id')) {
+                $table->foreign('practical_id')->references('id')->on('practicals')->onDelete('set null');
+            }
+            
+            if (Schema::hasColumn('attendances', 'subject_id')) {
+                $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('set null');
+            }
         });
         
         // Update existing records to populate recorded_by from created_by

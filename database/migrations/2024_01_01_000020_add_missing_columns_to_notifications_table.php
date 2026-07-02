@@ -6,91 +6,93 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            if (!Schema::hasColumn('notifications', 'pengirim_id')) {
-                $table->unsignedBigInteger('pengirim_id')->nullable();
-            }
+            // Add missing columns
             if (!Schema::hasColumn('notifications', 'sender_id')) {
-                $table->unsignedBigInteger('sender_id')->nullable();
+                $table->unsignedBigInteger('sender_id')->nullable()->after('pengirim_id');
+                $table->foreign('sender_id')->references('id')->on('users')->onDelete('set null');
             }
+            
             if (!Schema::hasColumn('notifications', 'receiver_id')) {
-                $table->unsignedBigInteger('receiver_id')->nullable();
+                $table->unsignedBigInteger('receiver_id')->nullable()->after('penerima_id');
+                $table->foreign('receiver_id')->references('id')->on('users')->onDelete('set null');
             }
+            
             if (!Schema::hasColumn('notifications', 'receiver_type')) {
-                $table->string('receiver_type')->nullable();
+                $table->string('receiver_type')->nullable()->after('tipe_penerima');
             }
+            
             if (!Schema::hasColumn('notifications', 'tipe')) {
-                $table->string('tipe')->default('info');
+                $table->string('tipe')->default('info')->after('receiver_type');
             }
+            
             if (!Schema::hasColumn('notifications', 'type')) {
-                $table->string('type')->nullable();
+                $table->string('type')->nullable()->after('tipe');
             }
+            
             if (!Schema::hasColumn('notifications', 'judul')) {
-                $table->string('judul')->nullable();
+                $table->string('judul')->nullable()->after('type');
             }
+            
             if (!Schema::hasColumn('notifications', 'pesan')) {
-                $table->text('pesan')->nullable();
+                $table->text('pesan')->nullable()->after('judul');
             }
+            
             if (!Schema::hasColumn('notifications', 'url_aksi')) {
-                $table->string('url_aksi')->nullable();
+                $table->string('url_aksi')->nullable()->after('pesan');
             }
+            
             if (!Schema::hasColumn('notifications', 'prioritas')) {
-                $table->string('prioritas')->default('sedang');
+                $table->string('prioritas')->default('sedang')->after('url_aksi');
             }
+            
             if (!Schema::hasColumn('notifications', 'priority')) {
-                $table->string('priority')->nullable();
+                $table->string('priority')->nullable()->after('prioritas');
             }
+            
             if (!Schema::hasColumn('notifications', 'status')) {
-                $table->string('status')->default('belum_dibaca');
+                $table->string('status')->default('belum_dibaca')->after('priority');
             }
+            
             if (!Schema::hasColumn('notifications', 'scheduled_at')) {
-                $table->timestamp('scheduled_at')->nullable();
+                $table->timestamp('scheduled_at')->nullable()->after('read_at');
             }
-        });
-
-        // Tambah index hanya jika belum ada
-        $this->addIndexIfNotExists('notifications', ['receiver_id', 'receiver_type'], 'notifications_receiver_id_receiver_type_index');
-        $this->addIndexIfNotExists('notifications', ['receiver_type'],  'notifications_receiver_type_index');
-        $this->addIndexIfNotExists('notifications', ['tipe'],           'notifications_tipe_index');
-        $this->addIndexIfNotExists('notifications', ['type'],           'notifications_type_index');
-        $this->addIndexIfNotExists('notifications', ['status'],         'notifications_status_index');
-        $this->addIndexIfNotExists('notifications', ['prioritas'],      'notifications_prioritas_index');
-        $this->addIndexIfNotExists('notifications', ['priority'],       'notifications_priority_index');
-        $this->addIndexIfNotExists('notifications', ['scheduled_at'],   'notifications_scheduled_at_index');
-    }
-
-    public function down(): void
-    {
-        Schema::table('notifications', function (Blueprint $table) {
-            $columns = [
-                'pengirim_id', 'sender_id', 'receiver_id', 'receiver_type',
-                'tipe', 'type', 'judul', 'pesan', 'url_aksi',
-                'prioritas', 'priority', 'status', 'scheduled_at',
-            ];
-            foreach ($columns as $col) {
-                if (Schema::hasColumn('notifications', $col)) {
-                    $table->dropColumn($col);
-                }
-            }
+            
+            // Add indexes
+            $table->index(['receiver_id', 'receiver_type']);
+            $table->index('receiver_type');
+            $table->index('tipe');
+            $table->index('type');
+            $table->index('status');
+            $table->index('prioritas');
+            $table->index('priority');
+            $table->index('scheduled_at');
         });
     }
 
     /**
-     * Tambah index hanya jika belum ada di tabel.
+     * Reverse the migrations.
      */
-    private function addIndexIfNotExists(string $table, array $columns, string $indexName): void
+    public function down(): void
     {
-        try {
-            $indexes = \DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$indexName]);
-            if (empty($indexes)) {
-                Schema::table($table, function (Blueprint $t) use ($columns, $indexName) {
-                    $t->index($columns, $indexName);
-                });
+        Schema::table('notifications', function (Blueprint $table) {
+            // Drop added columns
+            $columns = [
+                'sender_id', 'receiver_id', 'receiver_type',
+                'tipe', 'type', 'judul', 'pesan', 'url_aksi',
+                'prioritas', 'priority', 'status', 'scheduled_at'
+            ];
+            
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('notifications', $column)) {
+                    $table->dropColumn($column);
+                }
             }
-        } catch (\Throwable $e) {
-            // Abaikan jika index sudah ada atau terjadi error lain
-        }
+        });
     }
 };

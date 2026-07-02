@@ -11,10 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('majors')) {
-            return;
-        }
-
         Schema::create('majors', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Contoh: Keperawatan, Farmasi, Analis Kesehatan
